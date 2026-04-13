@@ -1,6 +1,4 @@
-# OpenSphinx — Project Prompt
-
-Use this as the initial prompt when starting the repo with an AI agent.
+# OpenSphinx
 
 **Repo name:** `opensphinx`
 **Brand:** OpenSphinx
