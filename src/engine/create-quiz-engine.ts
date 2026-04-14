@@ -1,3 +1,4 @@
+import { generateObject } from "ai";
 import {
   EngineResponse,
   QuestionSpec,
@@ -6,6 +7,7 @@ import {
   SessionState
 } from "../schemas";
 import type { input, output } from "zod";
+import { z } from "zod";
 
 import { buildPrompt } from "./prompt-builder";
 import { generateScoreReport } from "./report";
@@ -14,9 +16,22 @@ import { scoreSession } from "./scoring";
 export type QuizConfigInput = input<typeof QuizConfig>;
 export type SessionStateInput = input<typeof SessionState>;
 export type ScoreResultInput = input<typeof ScoreResult>;
+export type QuizModel = Parameters<typeof generateObject>[0]["model"];
+
+const NextStepDecision = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("question"),
+    question: QuestionSpec
+  }),
+  z.object({
+    type: z.literal("complete")
+  })
+]);
+
+type NextStepDecision = z.infer<typeof NextStepDecision>;
 
 export interface CreateQuizEngineOptions {
-  readonly model?: unknown;
+  readonly model?: QuizModel;
   readonly config: QuizConfigInput;
 }
 
@@ -58,6 +73,46 @@ function buildFallbackQuestion(
   });
 }
 
+async function generateStepWithModel(
+  model: QuizModel,
+  sessionState: output<typeof SessionState>
+) {
+  const prompt = buildPrompt(sessionState);
+
+  const { object } = await generateObject({
+    model,
+    schema: NextStepDecision,
+    schemaName: "OpenSphinxNextStep",
+    schemaDescription:
+      "Decide whether to ask the next quiz question or mark the quiz complete.",
+    prompt,
+    maxRetries: 0
+  });
+
+  return NextStepDecision.parse(object);
+}
+
+async function generateStepWithRetry(
+  model: QuizModel,
+  sessionState: output<typeof SessionState>
+) {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await generateStepWithModel(model, sessionState);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  return {
+    type: "question",
+    question: buildFallbackQuestion(sessionState.config, sessionState.history.length),
+    error: lastError
+  } as const;
+}
+
 export function createQuizEngine(
   options: CreateQuizEngineOptions
 ): QuizEngine {
@@ -84,14 +139,33 @@ export function createQuizEngine(
         });
       }
 
+      if (options.model) {
+        const nextStep = await generateStepWithRetry(options.model, normalizedSession);
+
+        if (
+          nextStep.type === "complete" &&
+          normalizedSession.history.length >= config.minQuestions
+        ) {
+          return EngineResponse.parse({
+            type: "complete",
+            scores: scoreSession(normalizedSession)
+          });
+        }
+
+        if (nextStep.type === "question") {
+          return EngineResponse.parse({
+            type: "question",
+            question: nextStep.question
+          });
+        }
+      }
+
       if (normalizedSession.history.length >= config.minQuestions) {
         return EngineResponse.parse({
           type: "complete",
           scores: scoreSession(normalizedSession)
         });
       }
-
-      buildPrompt(normalizedSession);
 
       return EngineResponse.parse({
         type: "question",

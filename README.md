@@ -17,7 +17,7 @@ The current focus is package structure only. Product-specific quiz logic is inte
 - Strict TypeScript configuration
 - Vitest smoke tests for public subpath imports
 - Real shared Zod schemas in `opensphinx/schemas`
-- Deterministic scaffold engine in `opensphinx/engine`
+- AI-ready engine in `opensphinx/engine` with retry and fallback behavior
 - One-question React quiz UI in `opensphinx/react`
 
 ## Install

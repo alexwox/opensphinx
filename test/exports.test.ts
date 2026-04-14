@@ -1,6 +1,14 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { generateObjectMock } = vi.hoisted(() => ({
+  generateObjectMock: vi.fn()
+}));
+
+vi.mock("ai", () => ({
+  generateObject: generateObjectMock
+}));
 
 import { createQuizEngine } from "opensphinx/engine";
 import { SphinxQuiz } from "opensphinx/react";
@@ -26,6 +34,10 @@ describe("opensphinx public exports", () => {
       }
     ]
   } satisfies Parameters<typeof QuizConfig.parse>[0];
+
+  beforeEach(() => {
+    generateObjectMock.mockReset();
+  });
 
   it("resolves the engine subpath", () => {
     expect(typeof createQuizEngine).toBe("function");
@@ -179,6 +191,122 @@ describe("opensphinx public exports", () => {
       ]
     });
 
+    expect(response).toMatchObject({
+      type: "question",
+      question: {
+        type: "free_text"
+      }
+    });
+  });
+
+  it("uses the AI model to generate the next question", async () => {
+    generateObjectMock.mockResolvedValueOnce({
+      object: {
+        type: "question",
+        question: {
+          type: "rating",
+          question: "How confident are you in your onboarding process?",
+          max: 5
+        }
+      }
+    });
+
+    const engine = createQuizEngine({
+      model: {} as never,
+      config: {
+        ...baseConfig,
+        minQuestions: 3,
+        maxQuestions: 5
+      }
+    });
+
+    const response = await engine.generateNext({
+      sessionId: "session_ai_question",
+      config: engine.config,
+      history: [
+        {
+          question: {
+            type: "yes_no",
+            question: "Do you have a documented onboarding flow?"
+          },
+          answer: true
+        }
+      ]
+    });
+
+    expect(generateObjectMock).toHaveBeenCalledTimes(1);
+    expect(response).toMatchObject({
+      type: "question",
+      question: {
+        type: "rating"
+      }
+    });
+  });
+
+  it("allows the AI model to complete once minimum questions are met", async () => {
+    generateObjectMock.mockResolvedValueOnce({
+      object: {
+        type: "complete"
+      }
+    });
+
+    const engine = createQuizEngine({
+      model: {} as never,
+      config: {
+        ...baseConfig,
+        minQuestions: 1,
+        maxQuestions: 5
+      }
+    });
+
+    const response = await engine.generateNext({
+      sessionId: "session_ai_complete",
+      config: engine.config,
+      history: [
+        {
+          question: {
+            type: "yes_no",
+            question: "Do you like typed APIs?"
+          },
+          answer: true
+        }
+      ]
+    });
+
+    expect(response).toMatchObject({
+      type: "complete"
+    });
+  });
+
+  it("retries once and then falls back when AI generation fails", async () => {
+    generateObjectMock
+      .mockRejectedValueOnce(new Error("bad object"))
+      .mockRejectedValueOnce(new Error("still bad"));
+
+    const engine = createQuizEngine({
+      model: {} as never,
+      config: {
+        ...baseConfig,
+        minQuestions: 3,
+        maxQuestions: 5
+      }
+    });
+
+    const response = await engine.generateNext({
+      sessionId: "session_ai_retry",
+      config: engine.config,
+      history: [
+        {
+          question: {
+            type: "yes_no",
+            question: "Do you use AI in production?"
+          },
+          answer: true
+        }
+      ]
+    });
+
+    expect(generateObjectMock).toHaveBeenCalledTimes(2);
     expect(response).toMatchObject({
       type: "question",
       question: {

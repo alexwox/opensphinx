@@ -5,6 +5,7 @@ export {
 export type {
   CreateQuizEngineOptions,
   QuizConfigInput,
+  QuizModel,
   QuizEngine,
   ScoreResultInput,
   SessionStateInput

@@ -44,6 +44,11 @@ export function buildPrompt(sessionState: SessionState) {
     `Goals: ${config.goals.join("; ")}`,
     `Allowed question types: ${QUESTION_TYPE_GUIDANCE.join(", ")}`,
     `Question window: ${config.minQuestions}-${config.maxQuestions}`,
+    "Return either:",
+    '1. { "type": "question", "question": <valid QuestionSpec> }',
+    '2. { "type": "complete" } only when you already have enough information and the minimum question count has been met.',
+    "Never ask for information that is already clear from the history.",
+    "Prefer concrete, structured follow-up questions over vague prompts.",
     "History:",
     historyBlock
   ].join("\n\n");
