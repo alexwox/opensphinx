@@ -441,11 +441,11 @@ Recommended workflow:
 - `[partially done]` Step-aware React flow that consumes prefetched steps directly.
 - `[partially done]` Step numbering and progress reflect the real queued flow.
 - `[partially done]` Smooth background replenishment UX between steps without blocking loaders in the normal path.
-- `[not done]` Polished visual design aligned with the intended product direction.
+- `[partially done]` Polished visual design aligned with the intended product direction.
 - `[not done]` ShadCN-style component quality and ergonomics.
-- `[not done]` Theme customization that feels complete and intentional.
+- `[partially done]` Theme customization that feels complete and intentional.
 - `[not done]` Report display component in the React layer.
-- `[not done]` Mobile-first polish and interaction refinement.
+- `[partially done]` Mobile-first polish and interaction refinement.
 
 ### Demo And Integration
 

@@ -1,13 +1,12 @@
-import { openai } from "@ai-sdk/openai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createQuizEngine } from "opensphinx/engine";
+import { createQuizEngine } from "../../../../../src/engine";
 import {
   EngineStepResponse,
   ScoreResult,
   SessionState
-} from "opensphinx/schemas";
+} from "../../../../../src/schemas";
 
 import { demoQuizConfig } from "../../../lib/quiz-config";
 
@@ -18,10 +17,13 @@ const QuizRequest = z.object({
   scores: ScoreResult.optional()
 });
 
-function getDemoEngine() {
-  const model = process.env.OPENAI_API_KEY
-    ? openai("gpt-4o-mini")
-    : undefined;
+async function getDemoEngine() {
+  let model: Parameters<typeof createQuizEngine>[0]["model"];
+
+  if (process.env.OPENAI_API_KEY) {
+    const { openai } = await import("@ai-sdk/openai");
+    model = openai("gpt-4o-mini");
+  }
 
   return createQuizEngine({
     model,
@@ -32,7 +34,7 @@ function getDemoEngine() {
 export async function POST(request: Request) {
   try {
     const payload = QuizRequest.parse(await request.json());
-    const engine = getDemoEngine();
+    const engine = await getDemoEngine();
     const session = SessionState.parse({
       ...payload.session,
       config: engine.config

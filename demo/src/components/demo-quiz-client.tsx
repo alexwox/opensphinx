@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { SphinxQuiz } from "opensphinx/react";
+import { SphinxQuiz } from "../../../src/react";
 import type {
   AnswerValue,
   EngineStepResponse,
@@ -10,12 +10,12 @@ import type {
   SessionHistoryItem,
   SessionState,
   Step
-} from "opensphinx/schemas";
+} from "../../../src/schemas";
 import type {
   SphinxQuizPrefetchRequest,
   SphinxQuizPrefetchResult
-} from "opensphinx/react";
-import type { SphinxQuizThemeConfig } from "opensphinx/react";
+} from "../../../src/react";
+import type { SphinxQuizThemeConfig } from "../../../src/react";
 
 import { demoQuizConfig } from "../lib/quiz-config";
 

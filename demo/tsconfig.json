@@ -13,6 +13,18 @@
     "esModuleInterop": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": {
+      "opensphinx/engine": [
+        "../dist/engine/index.d.ts"
+      ],
+      "opensphinx/react": [
+        "../dist/react/index.d.ts"
+      ],
+      "opensphinx/schemas": [
+        "../dist/schemas/index.d.ts"
+      ]
+    },
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
@@ -25,6 +37,7 @@
   },
   "include": [
     "next-env.d.ts",
+    "**/*.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
