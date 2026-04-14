@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createQuizEngine } from "../../../../../src/engine";
+import type { EngineLogEvent } from "../../../../../src/engine";
 import {
   EngineStepResponse,
   ScoreResult,
@@ -25,9 +26,33 @@ async function getDemoEngine() {
     model = openai("gpt-4o-mini");
   }
 
+  const logger = (event: EngineLogEvent) => {
+    const details = [
+      `type=${event.type}`,
+      `session=${event.sessionId}`,
+      `history=${event.historyCount}`,
+      `steps=${event.completedSteps}`
+    ];
+
+    if (event.questionCount !== undefined) {
+      details.push(`questions=${event.questionCount}`);
+    }
+
+    if (event.duplicateCount !== undefined) {
+      details.push(`duplicates=${event.duplicateCount}`);
+    }
+
+    if (event.error) {
+      details.push(`error=${event.error}`);
+    }
+
+    console.info(`[opensphinx-demo] ${event.message} (${details.join(", ")})`);
+  };
+
   return createQuizEngine({
     model,
-    config: demoQuizConfig
+    config: demoQuizConfig,
+    logger
   });
 }
 

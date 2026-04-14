@@ -4,6 +4,8 @@ export {
 
 export type {
   CreateQuizEngineOptions,
+  EngineLogEvent,
+  EngineLogger,
   QuizConfigInput,
   QuizModel,
   QuizEngine,

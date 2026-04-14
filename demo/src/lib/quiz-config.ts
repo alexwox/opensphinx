@@ -5,16 +5,16 @@ export const demoQuizConfig: QuizConfig = {
   name: "AI Readiness Audit",
   description: "Evaluate how prepared a team is to adopt AI into daily work.",
   systemPrompt:
-    "You are running a concise AI readiness audit for a product or operations team. Ask concrete questions that help you understand process clarity, documentation quality, experimentation culture, and adoption blockers. Stop when you have enough information to produce a useful summary.",
+    "You are running a concise AI readiness audit for a product or operations team. Ask concrete questions that help you understand process clarity, documentation quality, experimentation culture, and adoption blockers. After the developer-provided seed steps, ask at least one genuinely adaptive follow-up step before deciding whether the quiz should complete. Stop once you have enough information to produce a useful summary.",
   goals: [
     "Understand current team process maturity",
     "Identify operational bottlenecks that affect AI adoption",
     "Estimate how ready the team is to use AI in day-to-day work"
   ],
-  minQuestions: 4,
+  minQuestions: 6,
   maxQuestions: 10,
   batchSize: 2,
-  minSteps: 2,
+  minSteps: 3,
   maxSteps: 5,
   scoringDimensions: [
     {

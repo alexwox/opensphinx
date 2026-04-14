@@ -168,6 +168,38 @@ describe("opensphinx public exports", () => {
     expect(engine.config.language).toBe("en");
   });
 
+  it("emits engine log events for key decisions", async () => {
+    const logger = vi.fn();
+    const engine = createQuizEngine({
+      config: {
+        ...baseConfig,
+        seedSteps: [
+          {
+            questions: [
+              {
+                type: "yes_no",
+                question: "Do you enjoy pair programming?"
+              }
+            ]
+          }
+        ]
+      },
+      logger
+    });
+
+    await engine.generateStep({
+      sessionId: "session_logging",
+      config: engine.config,
+      history: []
+    });
+
+    expect(logger).toHaveBeenCalled();
+    expect(logger.mock.calls[0]?.[0]).toMatchObject({
+      type: "seed-step-used",
+      sessionId: "session_logging"
+    });
+  });
+
   it("exposes the step schema and step response schema", () => {
     const step = Step.parse({
       questions: [
