@@ -23,6 +23,13 @@ function formatAnswer(answer: SessionState["history"][number]["answer"]) {
   return String(answer);
 }
 
+function formatQuestionReference(
+  question: SessionState["history"][number]["question"],
+  index: number
+) {
+  return `${index + 1}. [${question.type}] ${question.question}`;
+}
+
 export function buildPrompt(
   sessionState: SessionState,
   desiredQuestionCount: number
@@ -74,6 +81,19 @@ export function buildPrompt(
           .join("\n\n")
       : "No answers have been collected yet.";
 
+  const knownQuestions = [
+    ...normalizedSession.history.map((entry) => entry.question),
+    ...normalizedSession.pendingQuestions,
+    ...normalizedSession.pendingSteps.flatMap((step) => step.questions)
+  ];
+
+  const knownQuestionBlock =
+    knownQuestions.length > 0
+      ? knownQuestions
+          .map((question, index) => formatQuestionReference(question, index))
+          .join("\n")
+      : "No prior or queued questions.";
+
   return [
     config.systemPrompt,
     `Quiz: ${config.name}`,
@@ -92,7 +112,12 @@ export function buildPrompt(
     `If you return a step, return between 1 and ${desiredQuestionCount} questions in that step.`,
     "Use the developer's seed questions as the opening interview strategy.",
     "Never ask for information that is already clear from the history.",
+    "Do not repeat or closely paraphrase questions that have already been asked or queued.",
+    "Prefer the most information-dense follow-up questions first.",
+    "Avoid filler, meta commentary, or restating the quiz goal back to the user.",
     "Prefer concrete, structured follow-up questions over vague prompts.",
+    "Known questions to avoid repeating:",
+    knownQuestionBlock,
     "History:",
     historyBlock
   ].join("\n\n");

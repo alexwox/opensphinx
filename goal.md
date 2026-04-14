@@ -420,8 +420,8 @@ Recommended workflow:
 - `[partially done]` Completion logic respects hard bounds like `minQuestions` and `maxQuestions`.
 - `[completed]` Completion logic fully respects developer-configured hard step limits.
 - `[not done]` Background/prefetch-oriented replenishment strategy feels production-ready.
-- `[not done]` Strong prompt strategy for adaptive follow-up quality.
-- `[not done]` Better duplicate-question avoidance and history-awareness.
+- `[partially done]` Strong prompt strategy for adaptive follow-up quality.
+- `[partially done]` Better duplicate-question avoidance and history-awareness.
 - `[not done]` Provider-level guidance and examples for real model setup.
 
 ### Scoring And Reports

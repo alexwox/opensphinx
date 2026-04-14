@@ -420,6 +420,110 @@ describe("opensphinx public exports", () => {
     expect(response.questions[0]?.type).toBe("rating");
   });
 
+  it("filters duplicate AI-generated questions against history", async () => {
+    generateObjectMock.mockResolvedValueOnce({
+      object: {
+        type: "step",
+        step: {
+          questions: [
+            {
+              type: "yes_no",
+              question: "Do you have a documented onboarding flow?"
+            },
+            {
+              type: "free_text",
+              question: "What part of onboarding feels weakest?",
+              maxLength: 500
+            }
+          ]
+        }
+      }
+    });
+
+    const engine = createQuizEngine({
+      model: {} as never,
+      config: {
+        ...baseConfig,
+        batchSize: 2,
+        minQuestions: 3,
+        maxQuestions: 5
+      }
+    });
+
+    const response = await engine.generateStep({
+      sessionId: "session_dedup",
+      config: engine.config,
+      history: [
+        {
+          question: {
+            type: "yes_no",
+            question: "Do you have a documented onboarding flow?"
+          },
+          answer: true
+        }
+      ]
+    });
+
+    expect(response).toMatchObject({
+      type: "step"
+    });
+    if (response.type !== "step") {
+      throw new Error("Expected a sanitized step response.");
+    }
+    expect(response.step.questions).toHaveLength(1);
+    expect(response.step.questions[0]?.question).toBe(
+      "What part of onboarding feels weakest?"
+    );
+  });
+
+  it("falls back when the AI only returns duplicate questions", async () => {
+    generateObjectMock.mockResolvedValueOnce({
+      object: {
+        type: "step",
+        step: {
+          questions: [
+            {
+              type: "yes_no",
+              question: "Do you have a documented onboarding flow?"
+            }
+          ]
+        }
+      }
+    });
+
+    const engine = createQuizEngine({
+      model: {} as never,
+      config: {
+        ...baseConfig,
+        batchSize: 2,
+        minQuestions: 3,
+        maxQuestions: 5
+      }
+    });
+
+    const response = await engine.generateStep({
+      sessionId: "session_duplicate_fallback",
+      config: engine.config,
+      history: [
+        {
+          question: {
+            type: "yes_no",
+            question: "Do you have a documented onboarding flow?"
+          },
+          answer: true
+        }
+      ]
+    });
+
+    expect(response).toMatchObject({
+      type: "step"
+    });
+    if (response.type !== "step") {
+      throw new Error("Expected a fallback step response.");
+    }
+    expect(response.step.questions[0]?.type).toBe("free_text");
+  });
+
   it("allows the AI model to complete once minimum questions are met", async () => {
     generateObjectMock.mockResolvedValueOnce({
       object: {
@@ -522,6 +626,68 @@ describe("opensphinx public exports", () => {
     }
     expect(response.questions.length).toBeGreaterThan(0);
     expect(response.questions[0]?.type).toBe("free_text");
+  });
+
+  it("completes instead of asking generic fallback questions when AI fails after minimums are met", async () => {
+    generateObjectMock
+      .mockRejectedValueOnce(new Error("bad object"))
+      .mockRejectedValueOnce(new Error("still bad"));
+
+    const engine = createQuizEngine({
+      model: {} as never,
+      config: {
+        ...baseConfig,
+        minQuestions: 4,
+        minSteps: 2,
+        maxQuestions: 10,
+        batchSize: 2
+      }
+    });
+
+    const response = await engine.generateStep({
+      sessionId: "session_failed_after_minimums",
+      config: engine.config,
+      completedSteps: 2,
+      history: [
+        {
+          question: {
+            type: "yes_no",
+            question: "Do you already use AI tools in any recurring team workflow?"
+          },
+          answer: true
+        },
+        {
+          question: {
+            type: "rating",
+            question: "How clearly documented are your core team processes?",
+            max: 5
+          },
+          answer: 4
+        },
+        {
+          question: {
+            type: "mcq",
+            question: "Which area feels like the best first AI opportunity?",
+            options: ["Research", "Documentation", "Support"],
+            allowMultiple: false
+          },
+          answer: "Documentation"
+        },
+        {
+          question: {
+            type: "free_text",
+            question: "What is the biggest blocker stopping broader AI adoption today?",
+            maxLength: 500
+          },
+          answer: "Lack of process clarity"
+        }
+      ]
+    });
+
+    expect(generateObjectMock).toHaveBeenCalledTimes(2);
+    expect(response).toMatchObject({
+      type: "complete"
+    });
   });
 
   it("completes with scaffold scores and report output", async () => {

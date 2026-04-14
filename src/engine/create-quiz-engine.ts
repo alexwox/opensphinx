@@ -84,6 +84,52 @@ function buildFallbackQuestion(
   });
 }
 
+function normalizeQuestionText(question: QuestionSpec) {
+  return question.question
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function collectKnownQuestions(sessionState: output<typeof SessionState>) {
+  return [
+    ...sessionState.history.map((entry) => entry.question),
+    ...sessionState.pendingQuestions,
+    ...sessionState.pendingSteps.flatMap((step) => step.questions)
+  ];
+}
+
+function sanitizeGeneratedStep(
+  step: output<typeof Step>,
+  sessionState: output<typeof SessionState>
+) {
+  const knownQuestionTexts = new Set(
+    collectKnownQuestions(sessionState).map((question) =>
+      normalizeQuestionText(question)
+    )
+  );
+  const seenInStep = new Set<string>();
+
+  return step.questions.filter((question) => {
+      const normalized = normalizeQuestionText(question);
+
+      if (normalized.length === 0) {
+        return false;
+      }
+
+      if (knownQuestionTexts.has(normalized)) {
+        return false;
+      }
+
+      if (seenInStep.has(normalized)) {
+        return false;
+      }
+
+      seenInStep.add(normalized);
+      return true;
+    });
+}
+
 function buildFallbackStep(
   config: output<typeof QuizConfig>,
   historyLength: number
@@ -207,6 +253,7 @@ async function generateStepWithRetry(
   return {
     type: "step",
     step: buildFallbackStep(sessionState.config, sessionState.history.length),
+    fallbackReason: "generation_failed",
     error: lastError
   } as const;
 }
@@ -256,10 +303,44 @@ export function createQuizEngine(
       }
 
       if (nextStep.type === "step") {
+        if (
+          "fallbackReason" in nextStep &&
+          nextStep.fallbackReason === "generation_failed" &&
+          canComplete(config, normalizedSession)
+        ) {
+          return EngineStepResponse.parse({
+            type: "complete",
+            scores: scoreSession(normalizedSession)
+          });
+        }
+
+        const sanitizedQuestions = sanitizeGeneratedStep(
+          nextStep.step,
+          normalizedSession
+        );
+
+        if (sanitizedQuestions.length === 0) {
+          if (canComplete(config, normalizedSession)) {
+            return EngineStepResponse.parse({
+              type: "complete",
+              scores: scoreSession(normalizedSession)
+            });
+          }
+
+          return EngineStepResponse.parse({
+            type: "step",
+            step: buildFallbackStep(config, normalizedSession.history.length)
+          });
+        }
+
+        const sanitizedStep = Step.parse({
+          questions: sanitizedQuestions
+        });
+
         return EngineStepResponse.parse({
           type: "step",
           step: trimStepToRemainingQuestionBudget(
-            nextStep.step,
+            sanitizedStep,
             config,
             normalizedSession
           )
