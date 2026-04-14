@@ -16,8 +16,8 @@ The current focus is package structure only. Product-specific quiz logic is inte
 - ESM-first build via `tsup`
 - Strict TypeScript configuration
 - Vitest smoke tests for public subpath imports
-- Real shared Zod schemas in `opensphinx/schemas`
-- AI-ready engine in `opensphinx/engine` with retry and fallback behavior
+- Real shared Zod schemas in `opensphinx/schemas`, including batch-aware session state
+- Seed-first, batch-oriented engine in `opensphinx/engine` with AI retry and fallback behavior
 - One-question React quiz UI in `opensphinx/react`
 
 ## Install
@@ -53,7 +53,7 @@ There is intentionally no root `opensphinx` catch-all export. Consumers import f
 - No deep import paths
 - No framework coupling between subpaths
 - No hidden runtime setup
-- Minimal deterministic scaffold logic only
+- Seed questions and system-prompt-driven adaptive follow-up flow
 
 ## Dependencies
 

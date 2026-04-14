@@ -18,6 +18,7 @@ export const QuizConfig = z.object({
   goals: z.array(z.string()),
   minQuestions: z.number().default(5),
   maxQuestions: z.number().default(15),
+  batchSize: z.number().min(1).max(5).default(3),
   scoringDimensions: z.array(ScoringDimension),
   seedQuestions: z.array(QuestionSpec).optional(),
   language: z.string().default("en")

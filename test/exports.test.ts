@@ -13,6 +13,7 @@ vi.mock("ai", () => ({
 import { createQuizEngine } from "opensphinx/engine";
 import { SphinxQuiz } from "opensphinx/react";
 import {
+  EngineBatchResponse,
   EngineResponse,
   QuestionSpec,
   QuizConfig,
@@ -123,7 +124,9 @@ describe("opensphinx public exports", () => {
       type: "mcq",
       allowMultiple: false
     });
+    expect(config.batchSize).toBe(3);
     expect(config.language).toBe("en");
+    expect(session.pendingQuestions).toEqual([]);
     expect(session.history).toHaveLength(1);
     expect(response.type).toBe("question");
   });
@@ -135,35 +138,73 @@ describe("opensphinx public exports", () => {
 
     expect(engine.config.minQuestions).toBe(5);
     expect(engine.config.maxQuestions).toBe(15);
+    expect(engine.config.batchSize).toBe(3);
     expect(engine.config.language).toBe("en");
   });
 
-  it("serves seed questions before fallback questions", async () => {
+  it("serves seed batches before AI or fallback questions", async () => {
     const engine = createQuizEngine({
       config: {
         ...baseConfig,
         minQuestions: 2,
         maxQuestions: 4,
+        batchSize: 2,
         seedQuestions: [
           {
             type: "yes_no",
             question: "Do you enjoy pair programming?"
+          },
+          {
+            type: "free_text",
+            question: "What makes collaboration effective for you?",
+            maxLength: 500
           }
         ]
       }
     });
 
-    const response = await engine.generateNext({
+    const response = await engine.generateBatch({
       sessionId: "session_seed",
       config: engine.config,
       history: []
     });
 
     expect(response).toMatchObject({
+      type: "questions"
+    });
+    if (response.type !== "questions") {
+      throw new Error("Expected a questions batch.");
+    }
+    expect(response.questions).toHaveLength(2);
+    expect(response.questions[0]?.type).toBe("yes_no");
+    expect(response.questions[1]?.type).toBe("free_text");
+  });
+
+  it("uses pending questions before generating a new batch", async () => {
+    const engine = createQuizEngine({
+      config: {
+        ...baseConfig,
+        batchSize: 2
+      }
+    });
+
+    const response = await engine.generateNext({
+      sessionId: "session_pending",
+      config: engine.config,
+      history: [],
+      pendingQuestions: [
+        {
+          type: "rating",
+          question: "How satisfied are you?",
+          max: 5
+        }
+      ]
+    });
+
+    expect(response).toMatchObject({
       type: "question",
       question: {
-        type: "yes_no",
-        question: "Do you enjoy pair programming?"
+        type: "rating"
       }
     });
   });
@@ -199,15 +240,22 @@ describe("opensphinx public exports", () => {
     });
   });
 
-  it("uses the AI model to generate the next question", async () => {
+  it("uses the AI model to generate the next batch", async () => {
     generateObjectMock.mockResolvedValueOnce({
       object: {
-        type: "question",
-        question: {
-          type: "rating",
-          question: "How confident are you in your onboarding process?",
-          max: 5
-        }
+        type: "questions",
+        questions: [
+          {
+            type: "rating",
+            question: "How confident are you in your onboarding process?",
+            max: 5
+          },
+          {
+            type: "free_text",
+            question: "What part of onboarding feels weakest?",
+            maxLength: 500
+          }
+        ]
       }
     });
 
@@ -215,12 +263,13 @@ describe("opensphinx public exports", () => {
       model: {} as never,
       config: {
         ...baseConfig,
+        batchSize: 2,
         minQuestions: 3,
         maxQuestions: 5
       }
     });
 
-    const response = await engine.generateNext({
+    const response = await engine.generateBatch({
       sessionId: "session_ai_question",
       config: engine.config,
       history: [
@@ -236,11 +285,13 @@ describe("opensphinx public exports", () => {
 
     expect(generateObjectMock).toHaveBeenCalledTimes(1);
     expect(response).toMatchObject({
-      type: "question",
-      question: {
-        type: "rating"
-      }
+      type: "questions"
     });
+    if (response.type !== "questions") {
+      throw new Error("Expected an AI-generated questions batch.");
+    }
+    expect(response.questions).toHaveLength(2);
+    expect(response.questions[0]?.type).toBe("rating");
   });
 
   it("allows the AI model to complete once minimum questions are met", async () => {
@@ -259,7 +310,7 @@ describe("opensphinx public exports", () => {
       }
     });
 
-    const response = await engine.generateNext({
+    const response = await engine.generateBatch({
       sessionId: "session_ai_complete",
       config: engine.config,
       history: [
@@ -278,7 +329,7 @@ describe("opensphinx public exports", () => {
     });
   });
 
-  it("retries once and then falls back when AI generation fails", async () => {
+  it("retries once and then falls back to a generated batch when AI generation fails", async () => {
     generateObjectMock
       .mockRejectedValueOnce(new Error("bad object"))
       .mockRejectedValueOnce(new Error("still bad"));
@@ -292,7 +343,7 @@ describe("opensphinx public exports", () => {
       }
     });
 
-    const response = await engine.generateNext({
+    const response = await engine.generateBatch({
       sessionId: "session_ai_retry",
       config: engine.config,
       history: [
@@ -308,11 +359,13 @@ describe("opensphinx public exports", () => {
 
     expect(generateObjectMock).toHaveBeenCalledTimes(2);
     expect(response).toMatchObject({
-      type: "question",
-      question: {
-        type: "free_text"
-      }
+      type: "questions"
     });
+    if (response.type !== "questions") {
+      throw new Error("Expected a fallback questions batch.");
+    }
+    expect(response.questions.length).toBeGreaterThan(0);
+    expect(response.questions[0]?.type).toBe("free_text");
   });
 
   it("completes with scaffold scores and report output", async () => {
@@ -348,6 +401,20 @@ describe("opensphinx public exports", () => {
     expect(scores.dimensions).toHaveLength(1);
     expect(scores.dimensions[0]?.id).toBe("collaboration");
     expect(report).toContain('Report for "Work Style"');
+  });
+
+  it("exposes the batched engine response schema", () => {
+    const batch = EngineBatchResponse.parse({
+      type: "questions",
+      questions: [
+        {
+          type: "yes_no",
+          question: "Do you enjoy dynamic forms?"
+        }
+      ]
+    });
+
+    expect(batch.type).toBe("questions");
   });
 
   it("preserves consumer-facing types", () => {
