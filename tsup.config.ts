@@ -15,5 +15,5 @@ export default defineConfig({
   splitting: false,
   target: "es2022",
   treeshake: true,
-  external: ["react", "react-dom"]
+  external: ["react", "react-dom", "zod"]
 });

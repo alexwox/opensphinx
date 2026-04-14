@@ -16,7 +16,8 @@ The current focus is package structure only. Product-specific quiz logic is inte
 - ESM-first build via `tsup`
 - Strict TypeScript configuration
 - Vitest smoke tests for public subpath imports
-- Placeholder entry points for `react`, `engine`, and `schemas`
+- Real shared Zod schemas in `opensphinx/schemas`
+- Placeholder entry points for `react` and `engine`
 
 ## Install
 
