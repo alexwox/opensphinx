@@ -4,5 +4,8 @@ export {
 
 export type {
   CreateQuizEngineOptions,
-  QuizEngine
+  QuizConfigInput,
+  QuizEngine,
+  ScoreResultInput,
+  SessionStateInput
 } from "./create-quiz-engine";

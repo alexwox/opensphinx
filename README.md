@@ -17,7 +17,8 @@ The current focus is package structure only. Product-specific quiz logic is inte
 - Strict TypeScript configuration
 - Vitest smoke tests for public subpath imports
 - Real shared Zod schemas in `opensphinx/schemas`
-- Placeholder entry points for `react` and `engine`
+- Deterministic scaffold engine in `opensphinx/engine`
+- Placeholder React entry point in `opensphinx/react`
 
 ## Install
 
@@ -52,7 +53,7 @@ There is intentionally no root `opensphinx` catch-all export. Consumers import f
 - No deep import paths
 - No framework coupling between subpaths
 - No hidden runtime setup
-- No placeholder business logic beyond minimal API stubs
+- Minimal deterministic scaffold logic only
 
 ## Dependencies
 

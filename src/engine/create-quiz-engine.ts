@@ -1,39 +1,113 @@
-import type {
+import {
   EngineResponse,
+  QuestionSpec,
   QuizConfig,
   ScoreResult,
   SessionState
 } from "../schemas";
+import type { input, output } from "zod";
 
-const placeholderError = (methodName: string): never => {
-  throw new Error(
-    `OpenSphinx scaffold placeholder: \`${methodName}\` is not implemented yet.`
-  );
-};
+import { buildPrompt } from "./prompt-builder";
+import { generateScoreReport } from "./report";
+import { scoreSession } from "./scoring";
+
+export type QuizConfigInput = input<typeof QuizConfig>;
+export type SessionStateInput = input<typeof SessionState>;
+export type ScoreResultInput = input<typeof ScoreResult>;
 
 export interface CreateQuizEngineOptions {
   readonly model?: unknown;
-  readonly config: QuizConfig;
+  readonly config: QuizConfigInput;
 }
 
 export interface QuizEngine {
-  generateNext(sessionState: SessionState): Promise<EngineResponse>;
-  score(sessionState: SessionState): Promise<ScoreResult>;
-  generateReport(sessionState: SessionState, scores: ScoreResult): Promise<string>;
+  readonly config: output<typeof QuizConfig>;
+  generateNext(sessionState: SessionStateInput): Promise<output<typeof EngineResponse>>;
+  score(sessionState: SessionStateInput): Promise<output<typeof ScoreResult>>;
+  generateReport(
+    sessionState: SessionStateInput,
+    scores: ScoreResultInput
+  ): Promise<string>;
+}
+
+function normalizeConfig(config: QuizConfigInput) {
+  return QuizConfig.parse(config);
+}
+
+function normalizeSession(
+  sessionState: SessionStateInput,
+  config: output<typeof QuizConfig>
+) {
+  return SessionState.parse({
+    ...sessionState,
+    config
+  });
+}
+
+function buildFallbackQuestion(
+  config: output<typeof QuizConfig>,
+  historyLength: number
+) {
+  const questionNumber = historyLength + 1;
+
+  return QuestionSpec.parse({
+    type: "free_text",
+    question: `Question ${questionNumber}: What else should OpenSphinx know before it continues "${config.name}"?`,
+    placeholder: "Add any helpful context here.",
+    maxLength: 500
+  });
 }
 
 export function createQuizEngine(
-  _options: CreateQuizEngineOptions
+  options: CreateQuizEngineOptions
 ): QuizEngine {
+  const config = normalizeConfig(options.config);
+
   return {
-    async generateNext(_sessionState) {
-      return placeholderError("engine.generateNext");
+    config,
+    async generateNext(sessionState) {
+      const normalizedSession = normalizeSession(sessionState, config);
+
+      if (normalizedSession.history.length >= config.maxQuestions) {
+        return EngineResponse.parse({
+          type: "complete",
+          scores: scoreSession(normalizedSession)
+        });
+      }
+
+      const nextSeedQuestion = config.seedQuestions?.[normalizedSession.history.length];
+
+      if (nextSeedQuestion) {
+        return EngineResponse.parse({
+          type: "question",
+          question: nextSeedQuestion
+        });
+      }
+
+      if (normalizedSession.history.length >= config.minQuestions) {
+        return EngineResponse.parse({
+          type: "complete",
+          scores: scoreSession(normalizedSession)
+        });
+      }
+
+      buildPrompt(normalizedSession);
+
+      return EngineResponse.parse({
+        type: "question",
+        question: buildFallbackQuestion(config, normalizedSession.history.length)
+      });
     },
-    async score(_sessionState) {
-      return placeholderError("engine.score");
+    async score(sessionState) {
+      const normalizedSession = normalizeSession(sessionState, config);
+
+      return scoreSession(normalizedSession);
     },
-    async generateReport(_sessionState, _scores) {
-      return placeholderError("engine.generateReport");
+    async generateReport(sessionState, scores) {
+      const normalizedSession = normalizeSession(sessionState, config);
+      const normalizedScores = ScoreResult.parse(scores);
+
+      return generateScoreReport(normalizedSession, normalizedScores);
     }
   };
 }
