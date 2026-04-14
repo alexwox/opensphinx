@@ -433,7 +433,7 @@ Recommended workflow:
 - `[partially done]` `SphinxQuiz` renders one question at a time.
 - `[partially done]` All current question schema variants have basic rendering support.
 - `[partially done]` Loading and progress states exist.
-- `[not done]` Step-aware React flow that consumes prefetched steps directly.
+- `[partially done]` Step-aware React flow that consumes prefetched steps directly.
 - `[not done]` Smooth background replenishment UX between steps.
 - `[not done]` Polished visual design aligned with the intended product direction.
 - `[not done]` ShadCN-style component quality and ergonomics.
@@ -467,6 +467,6 @@ Recommended workflow:
 - `[partially done]` Shared schemas enforce safe question output.
 - `[partially done]` AI output fallback behavior exists.
 - `[not done]` Broader engine edge-case coverage.
-- `[not done]` React behavior tests beyond basic rendering smoke tests.
+- `[partially done]` React behavior tests beyond basic rendering smoke tests.
 - `[not done]` Integration tests across the full client/server loop.
 - `[not done]` Final safety review against prompt-injection and malformed output risks.

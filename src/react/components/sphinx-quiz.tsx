@@ -1,9 +1,10 @@
-import { useEffect, useId, useMemo, useState } from "react";
+import { type ReactNode, useId, useMemo, useState } from "react";
 
 import type {
   AnswerValue,
   QuestionSpec,
-  ScoreResult
+  ScoreResult,
+  Step
 } from "../../schemas";
 
 import { LoadingSkeleton } from "./loading-skeleton";
@@ -20,15 +21,47 @@ export interface SphinxQuizProgress {
 
 export type SphinxQuizTheme = "default" | Record<string, unknown>;
 
-export interface SphinxQuizProps {
-  readonly question: QuestionSpec;
-  readonly onAnswer: (answer: AnswerValue) => void;
+export interface SphinxQuizStepSubmission {
+  readonly step: Step;
+  readonly answers: AnswerValue[];
+  readonly stepIndex: number;
+  readonly totalSteps: number;
+  readonly remainingSteps: number;
+}
+
+export interface SphinxQuizFlowCompletion {
+  readonly submissions: readonly SphinxQuizStepSubmission[];
+}
+
+interface SphinxQuizBaseProps {
   readonly onComplete?: (scores: ScoreResult) => void;
   readonly isLoading?: boolean;
   readonly progress?: SphinxQuizProgress;
   readonly theme?: SphinxQuizTheme;
   readonly className?: string;
 }
+
+export interface SphinxQuizSingleQuestionProps extends SphinxQuizBaseProps {
+  readonly question: QuestionSpec;
+  readonly onAnswer: (answer: AnswerValue) => void;
+  readonly step?: never;
+  readonly steps?: never;
+  readonly onStepSubmit?: never;
+  readonly onStepsComplete?: never;
+}
+
+export interface SphinxQuizStepFlowProps extends SphinxQuizBaseProps {
+  readonly step?: Step;
+  readonly steps?: readonly Step[];
+  readonly onAnswer?: (answer: AnswerValue) => void;
+  readonly onStepSubmit?: (submission: SphinxQuizStepSubmission) => void;
+  readonly onStepsComplete?: (completion: SphinxQuizFlowCompletion) => void;
+  readonly question?: never;
+}
+
+export type SphinxQuizProps =
+  | SphinxQuizSingleQuestionProps
+  | SphinxQuizStepFlowProps;
 
 function getInitialDraft(question: QuestionSpec): QuestionDraftValue {
   switch (question.type) {
@@ -119,32 +152,65 @@ function joinClassNames(...values: Array<string | undefined>) {
   return values.filter(Boolean).join(" ");
 }
 
-export function SphinxQuiz({
-  question,
-  onAnswer,
-  onComplete,
-  isLoading = false,
+function hasSingleQuestionMode(
+  props: SphinxQuizProps
+): props is SphinxQuizSingleQuestionProps {
+  return "question" in props && props.question !== undefined;
+}
+
+function getStepQueue(props: SphinxQuizStepFlowProps) {
+  if (props.steps && props.steps.length > 0) {
+    return props.steps;
+  }
+
+  if (props.step) {
+    return [props.step];
+  }
+
+  return [];
+}
+
+function getQuestionOffset(steps: readonly Step[], stepIndex: number) {
+  return steps
+    .slice(0, stepIndex)
+    .reduce((total, step) => total + step.questions.length, 0);
+}
+
+function getAutoProgress(
+  steps: readonly Step[],
+  currentStepIndex: number,
+  currentQuestionIndex: number
+): SphinxQuizProgress {
+  const max = steps.reduce((total, step) => total + step.questions.length, 0);
+  const current =
+    getQuestionOffset(steps, currentStepIndex) + currentQuestionIndex + 1;
+
+  return {
+    current,
+    max
+  };
+}
+
+function getQuestionKey(question: QuestionSpec) {
+  return JSON.stringify(question);
+}
+
+function getStepsKey(steps: readonly Step[]) {
+  return JSON.stringify(steps);
+}
+
+function QuizShell({
+  children,
+  className,
   progress,
-  theme = "default",
-  className
-}: SphinxQuizProps) {
-  const inputName = useId();
-  const [draft, setDraft] = useState<QuestionDraftValue>(() =>
-    getInitialDraft(question)
-  );
-
-  useEffect(() => {
-    setDraft(getInitialDraft(question));
-  }, [question]);
-
-  const normalizedAnswer = useMemo(
-    () => normalizeAnswer(question, draft),
-    [draft, question]
-  );
-
-  const isReadyToSubmit = normalizedAnswer !== null && !isLoading;
+  theme
+}: {
+  readonly children: ReactNode;
+  readonly className?: string;
+  readonly progress?: SphinxQuizProgress;
+  readonly theme?: SphinxQuizTheme;
+}) {
   const themeName = typeof theme === "string" ? theme : "custom";
-  void onComplete;
 
   return (
     <section
@@ -152,48 +218,338 @@ export function SphinxQuiz({
       data-theme={themeName}
     >
       {progress && <ProgressBar current={progress.current} max={progress.max} />}
+      <div className="opensphinx-card">{children}</div>
+    </section>
+  );
+}
 
-      <div className="opensphinx-card">
-        <header className="opensphinx-card__header">
-          <p className="opensphinx-question-type">{question.type}</p>
-          <h2 className="opensphinx-question">{question.question}</h2>
-        </header>
+function SingleQuestionQuiz({
+  question,
+  onAnswer,
+  onComplete,
+  isLoading = false,
+  progress,
+  theme = "default",
+  className
+}: SphinxQuizSingleQuestionProps) {
+  void onComplete;
 
+  return (
+    <QuizShell
+      className={className}
+      progress={progress}
+      theme={theme}
+    >
+      <header className="opensphinx-card__header">
+        <p className="opensphinx-question-type">{question.type}</p>
+        <h2 className="opensphinx-question">{question.question}</h2>
+      </header>
+
+      {isLoading ? (
+        <LoadingSkeleton />
+      ) : (
+        <SingleQuestionForm
+          key={getQuestionKey(question)}
+          isLoading={isLoading}
+          onAnswer={onAnswer}
+          question={question}
+        />
+      )}
+    </QuizShell>
+  );
+}
+
+function SingleQuestionForm({
+  question,
+  onAnswer,
+  isLoading
+}: {
+  readonly question: QuestionSpec;
+  readonly onAnswer: (answer: AnswerValue) => void;
+  readonly isLoading: boolean;
+}) {
+  const inputName = useId();
+  const [draft, setDraft] = useState<QuestionDraftValue>(() =>
+    getInitialDraft(question)
+  );
+
+  const normalizedAnswer = useMemo(
+    () => normalizeAnswer(question, draft),
+    [draft, question]
+  );
+
+  const isReadyToSubmit = normalizedAnswer !== null && !isLoading;
+
+  return (
+    <form
+      className="opensphinx-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+
+        if (normalizedAnswer === null) {
+          return;
+        }
+
+        onAnswer(normalizedAnswer);
+      }}
+    >
+      <QuestionRenderer
+        disabled={isLoading}
+        draft={draft}
+        inputName={inputName}
+        onChange={setDraft}
+        question={question}
+      />
+
+      <div className="opensphinx-actions">
+        <button
+          className="opensphinx-submit"
+          disabled={!isReadyToSubmit}
+          type="submit"
+        >
+          Continue
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function StepFlowQuiz({
+  onAnswer,
+  onComplete,
+  onStepSubmit,
+  onStepsComplete,
+  isLoading = false,
+  progress,
+  theme = "default",
+  className,
+  ...rest
+}: SphinxQuizStepFlowProps) {
+  const steps = getStepQueue(rest);
+
+  return (
+    <StepFlowSession
+      key={getStepsKey(steps)}
+      className={className}
+      isLoading={isLoading}
+      onAnswer={onAnswer}
+      onComplete={onComplete}
+      onStepSubmit={onStepSubmit}
+      onStepsComplete={onStepsComplete}
+      progress={progress}
+      steps={steps}
+      theme={theme}
+    />
+  );
+}
+
+function StepFlowSession({
+  steps,
+  onAnswer,
+  onComplete,
+  onStepSubmit,
+  onStepsComplete,
+  isLoading,
+  progress,
+  theme,
+  className
+}: {
+  readonly steps: readonly Step[];
+  readonly onAnswer?: (answer: AnswerValue) => void;
+  readonly onComplete?: (scores: ScoreResult) => void;
+  readonly onStepSubmit?: (submission: SphinxQuizStepSubmission) => void;
+  readonly onStepsComplete?: (completion: SphinxQuizFlowCompletion) => void;
+  readonly isLoading: boolean;
+  readonly progress?: SphinxQuizProgress;
+  readonly theme: SphinxQuizTheme;
+  readonly className?: string;
+}) {
+  const inputName = useId();
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
+  const [currentAnswers, setCurrentAnswers] = useState<AnswerValue[]>([]);
+  const [submissions, setSubmissions] = useState<SphinxQuizStepSubmission[]>([]);
+
+  const activeStep = steps[activeStepIndex];
+  const activeQuestion = activeStep?.questions[activeQuestionIndex];
+  const resolvedProgress =
+    progress ??
+    (activeQuestion
+      ? getAutoProgress(steps, activeStepIndex, activeQuestionIndex)
+      : undefined);
+  const allQueuedStepsComplete = steps.length > 0 && activeStepIndex >= steps.length;
+  void onComplete;
+
+  if (!activeQuestion) {
+    return (
+      <QuizShell
+        className={className}
+        progress={resolvedProgress}
+        theme={theme}
+      >
         {isLoading ? (
           <LoadingSkeleton />
         ) : (
-          <form
-            className="opensphinx-form"
-            onSubmit={(event) => {
-              event.preventDefault();
+          <div className="opensphinx-card__header">
+            <p className="opensphinx-question-type">steps</p>
+            <h2 className="opensphinx-question">
+              {allQueuedStepsComplete
+                ? "All queued steps are complete."
+                : "No step is available yet."}
+            </h2>
+          </div>
+        )}
+      </QuizShell>
+    );
+  }
 
-              if (normalizedAnswer === null) {
-                return;
+  const isLastQuestionInStep = activeQuestionIndex === activeStep.questions.length - 1;
+  const isLastStepInQueue = activeStepIndex === steps.length - 1;
+  const submitLabel = isLastQuestionInStep
+    ? isLastStepInQueue
+      ? "Submit step"
+      : "Next step"
+    : "Next question";
+
+  return (
+    <QuizShell
+      className={className}
+      progress={resolvedProgress}
+      theme={theme}
+    >
+      <header className="opensphinx-card__header">
+        <p className="opensphinx-question-type">
+          Step {activeStepIndex + 1} of {steps.length}
+        </p>
+        <h2 className="opensphinx-question">{activeQuestion.question}</h2>
+      </header>
+
+      {isLoading ? (
+        <LoadingSkeleton />
+      ) : (
+        <StepQuestionForm
+          key={`${activeStepIndex}:${activeQuestionIndex}:${getQuestionKey(activeQuestion)}`}
+          inputName={inputName}
+          isLoading={isLoading}
+          onSubmitAnswer={(normalizedAnswer) => {
+            onAnswer?.(normalizedAnswer);
+
+            if (!isLastQuestionInStep) {
+              setCurrentAnswers((previous) => {
+                const next = [...previous];
+                next[activeQuestionIndex] = normalizedAnswer;
+                return next;
+              });
+              setActiveQuestionIndex((currentIndex) => currentIndex + 1);
+              return;
+            }
+
+            const answers = [...currentAnswers];
+            answers[activeQuestionIndex] = normalizedAnswer;
+
+            const submission: SphinxQuizStepSubmission = {
+              step: activeStep,
+              answers,
+              stepIndex: activeStepIndex,
+              totalSteps: steps.length,
+              remainingSteps: Math.max(0, steps.length - activeStepIndex - 1)
+            };
+
+            onStepSubmit?.(submission);
+
+            setSubmissions((previous) => {
+              const next = [...previous, submission];
+
+              if (isLastStepInQueue) {
+                onStepsComplete?.({
+                  submissions: next
+                });
               }
 
-              onAnswer(normalizedAnswer);
-            }}
-          >
-            <QuestionRenderer
-              disabled={isLoading}
-              draft={draft}
-              inputName={inputName}
-              onChange={setDraft}
-              question={question}
-            />
+              return next;
+            });
 
-            <div className="opensphinx-actions">
-              <button
-                className="opensphinx-submit"
-                disabled={!isReadyToSubmit}
-                type="submit"
-              >
-                Continue
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-    </section>
+            if (isLastStepInQueue) {
+              setActiveStepIndex(steps.length);
+              setActiveQuestionIndex(0);
+              setCurrentAnswers([]);
+              return;
+            }
+
+            setActiveStepIndex((currentIndex) => currentIndex + 1);
+            setActiveQuestionIndex(0);
+            setCurrentAnswers([]);
+          }}
+          question={activeQuestion}
+          submitLabel={submitLabel}
+        />
+      )}
+    </QuizShell>
   );
+}
+
+function StepQuestionForm({
+  question,
+  inputName,
+  submitLabel,
+  isLoading,
+  onSubmitAnswer
+}: {
+  readonly question: QuestionSpec;
+  readonly inputName: string;
+  readonly submitLabel: string;
+  readonly isLoading: boolean;
+  readonly onSubmitAnswer: (answer: AnswerValue) => void;
+}) {
+  const [draft, setDraft] = useState<QuestionDraftValue>(() =>
+    getInitialDraft(question)
+  );
+
+  const normalizedAnswer = useMemo(
+    () => normalizeAnswer(question, draft),
+    [draft, question]
+  );
+
+  const isReadyToSubmit = normalizedAnswer !== null && !isLoading;
+
+  return (
+    <form
+      className="opensphinx-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+
+        if (normalizedAnswer === null) {
+          return;
+        }
+
+        onSubmitAnswer(normalizedAnswer);
+      }}
+    >
+      <QuestionRenderer
+        disabled={isLoading}
+        draft={draft}
+        inputName={inputName}
+        onChange={setDraft}
+        question={question}
+      />
+
+      <div className="opensphinx-actions">
+        <button
+          className="opensphinx-submit"
+          disabled={!isReadyToSubmit}
+          type="submit"
+        >
+          {submitLabel}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export function SphinxQuiz(props: SphinxQuizProps) {
+  if (hasSingleQuestionMode(props)) {
+    return <SingleQuestionQuiz {...props} />;
+  }
+
+  return <StepFlowQuiz {...props} />;
 }
