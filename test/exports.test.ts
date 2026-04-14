@@ -87,6 +87,27 @@ describe("opensphinx public exports", () => {
     expect(html).toContain("Preparing the next question");
   });
 
+  it("applies custom theme variables to the React quiz surface", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(SphinxQuiz, {
+        question: QuestionSpec.parse({
+          type: "yes_no",
+          question: "Do you like themed components?"
+        }),
+        onAnswer: () => undefined,
+        theme: {
+          accent: "#ff4d6d",
+          radius: 24,
+          surface: "#111827"
+        }
+      })
+    );
+
+    expect(html).toContain('data-theme="custom"');
+    expect(html).toContain("--opensphinx-accent:#ff4d6d");
+    expect(html).toContain("--opensphinx-radius:24px");
+  });
+
   it("resolves the schemas subpath", async () => {
     const schemasModule = await import("opensphinx/schemas");
 

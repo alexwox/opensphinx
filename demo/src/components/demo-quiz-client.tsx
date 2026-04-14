@@ -15,8 +15,20 @@ import type {
   SphinxQuizPrefetchRequest,
   SphinxQuizPrefetchResult
 } from "opensphinx/react";
+import type { SphinxQuizThemeConfig } from "opensphinx/react";
 
 import { demoQuizConfig } from "../lib/quiz-config";
+
+const demoQuizTheme: SphinxQuizThemeConfig = {
+  surface: "rgba(11, 16, 32, 0.88)",
+  surfaceAlt: "rgba(15, 23, 42, 0.92)",
+  border: "rgba(148, 163, 184, 0.18)",
+  accent: "#7c9cff",
+  accentForeground: "#f8fbff",
+  text: "#e5edf8",
+  mutedText: "#9db0c9",
+  radius: 22
+};
 
 type DemoApiResponse = {
   next: EngineStepResponse;
@@ -195,6 +207,7 @@ export function DemoQuizClient() {
             onRequestPrefetch={handlePrefetch}
             prefetchWhenRemainingSteps={0}
             steps={initialSteps}
+            theme={demoQuizTheme}
           />
         </section>
       )}

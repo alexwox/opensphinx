@@ -11,5 +11,6 @@ export type {
   SphinxQuizSingleQuestionProps,
   SphinxQuizStepFlowProps,
   SphinxQuizStepSubmission,
+  SphinxQuizThemeConfig,
   SphinxQuizTheme
 } from "./components";

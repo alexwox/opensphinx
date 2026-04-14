@@ -34,6 +34,204 @@ button {
   cursor: pointer;
 }
 
+:where(.opensphinx-quiz) {
+  --opensphinx-surface: rgba(15, 23, 42, 0.86);
+  --opensphinx-surface-alt: rgba(18, 28, 51, 0.92);
+  --opensphinx-border: rgba(148, 163, 184, 0.18);
+  --opensphinx-accent: #7c9cff;
+  --opensphinx-accent-foreground: #f8fbff;
+  --opensphinx-text: #e5edf8;
+  --opensphinx-muted-text: #9db0c9;
+  --opensphinx-radius: 22px;
+  color: var(--opensphinx-text);
+}
+
+.opensphinx-card {
+  background: linear-gradient(
+    180deg,
+    var(--opensphinx-surface-alt),
+    var(--opensphinx-surface)
+  );
+  border: 1px solid var(--opensphinx-border);
+  border-radius: var(--opensphinx-radius);
+  padding: 1.25rem;
+  box-shadow: 0 18px 48px rgba(2, 6, 23, 0.28);
+}
+
+.opensphinx-card__header {
+  margin-bottom: 1.25rem;
+}
+
+.opensphinx-question-type {
+  margin: 0 0 0.5rem;
+  color: var(--opensphinx-muted-text);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.opensphinx-question {
+  margin: 0;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1.15;
+  color: var(--opensphinx-text);
+}
+
+.opensphinx-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.opensphinx-options {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.opensphinx-options--binary,
+.opensphinx-options--rating {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.opensphinx-option,
+.opensphinx-binary-option,
+.opensphinx-rating-option {
+  border: 1px solid var(--opensphinx-border);
+  border-radius: calc(var(--opensphinx-radius) - 8px);
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--opensphinx-text);
+  transition:
+    border-color 120ms ease,
+    transform 120ms ease,
+    background 120ms ease;
+}
+
+.opensphinx-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+}
+
+.opensphinx-option:hover,
+.opensphinx-binary-option:hover,
+.opensphinx-rating-option:hover {
+  border-color: color-mix(in srgb, var(--opensphinx-accent) 65%, white 35%);
+  background: rgba(17, 28, 52, 0.92);
+  transform: translateY(-1px);
+}
+
+.opensphinx-option input {
+  accent-color: var(--opensphinx-accent);
+}
+
+.opensphinx-binary-option,
+.opensphinx-rating-option {
+  padding: 0.95rem 1rem;
+}
+
+.opensphinx-field {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.opensphinx-input,
+.opensphinx-textarea,
+.opensphinx-slider {
+  width: 100%;
+}
+
+.opensphinx-input,
+.opensphinx-textarea {
+  border: 1px solid var(--opensphinx-border);
+  border-radius: calc(var(--opensphinx-radius) - 10px);
+  background: rgba(8, 13, 26, 0.92);
+  color: var(--opensphinx-text);
+  padding: 0.9rem 1rem;
+}
+
+.opensphinx-input::placeholder,
+.opensphinx-textarea::placeholder {
+  color: color-mix(in srgb, var(--opensphinx-muted-text) 90%, white 10%);
+}
+
+.opensphinx-slider {
+  accent-color: var(--opensphinx-accent);
+}
+
+.opensphinx-slider__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--opensphinx-muted-text);
+}
+
+.opensphinx-hint {
+  margin: 0;
+  color: var(--opensphinx-muted-text);
+  font-size: 0.92rem;
+}
+
+.opensphinx-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.opensphinx-submit {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.85rem 1.2rem;
+  background: linear-gradient(
+    135deg,
+    var(--opensphinx-accent),
+    color-mix(in srgb, var(--opensphinx-accent) 70%, white 30%)
+  );
+  color: var(--opensphinx-accent-foreground);
+  font-weight: 600;
+  box-shadow: 0 10px 24px rgba(57, 97, 196, 0.28);
+}
+
+.opensphinx-submit:disabled,
+.demo-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+
+.opensphinx-progress {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 0.9rem;
+  border: 1px solid var(--opensphinx-border);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.62);
+}
+
+.opensphinx-progress__bar {
+  height: 10px;
+  background: linear-gradient(
+    90deg,
+    var(--opensphinx-accent),
+    color-mix(in srgb, var(--opensphinx-accent) 65%, white 35%)
+  );
+}
+
+.opensphinx-progress__label {
+  margin: 0;
+  padding: 0.5rem 0.9rem 0.65rem;
+  color: var(--opensphinx-muted-text);
+  font-size: 0.9rem;
+}
+
+.opensphinx-loading-skeleton {
+  border: 1px dashed var(--opensphinx-border);
+  border-radius: calc(var(--opensphinx-radius) - 10px);
+  padding: 1rem;
+  color: var(--opensphinx-muted-text);
+  background: rgba(15, 23, 42, 0.4);
+}
+
 .demo-shell {
   width: min(960px, calc(100% - 2rem));
   margin: 0 auto;
@@ -93,4 +291,27 @@ button {
 .demo-panel pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .demo-shell {
+    width: min(100%, calc(100% - 1rem));
+    padding: 1rem 0 2rem;
+  }
+
+  .demo-header,
+  .demo-panel,
+  .opensphinx-card {
+    padding: 1rem;
+  }
+
+  .demo-actions,
+  .opensphinx-actions {
+    flex-direction: column;
+  }
+
+  .demo-actions button,
+  .opensphinx-submit {
+    width: 100%;
+  }
 }
