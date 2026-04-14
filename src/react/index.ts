@@ -4,6 +4,8 @@ export {
 
 export type {
   SphinxQuizFlowCompletion,
+  SphinxQuizPrefetchRequest,
+  SphinxQuizPrefetchResult,
   SphinxQuizProgress,
   SphinxQuizProps,
   SphinxQuizSingleQuestionProps,

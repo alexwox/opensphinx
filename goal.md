@@ -434,7 +434,7 @@ Recommended workflow:
 - `[partially done]` All current question schema variants have basic rendering support.
 - `[partially done]` Loading and progress states exist.
 - `[partially done]` Step-aware React flow that consumes prefetched steps directly.
-- `[not done]` Smooth background replenishment UX between steps.
+- `[partially done]` Smooth background replenishment UX between steps.
 - `[not done]` Polished visual design aligned with the intended product direction.
 - `[not done]` ShadCN-style component quality and ergonomics.
 - `[not done]` Theme customization that feels complete and intentional.

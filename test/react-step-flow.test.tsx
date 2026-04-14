@@ -1,6 +1,6 @@
 /** @vitest-environment happy-dom */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { SphinxQuiz } from "opensphinx/react";
@@ -112,5 +112,52 @@ describe("SphinxQuiz step flow", () => {
     expect(screen.getByText("Step 1 of 1")).toBeTruthy();
     expect(screen.getByText("How confident are you in your process?")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Submit step" })).toBeTruthy();
+  });
+
+  it("requests and appends more steps when the queue gets low", async () => {
+    const handlePrefetch = vi.fn().mockResolvedValue({
+      type: "steps",
+      steps: [
+        {
+          questions: [
+            {
+              type: "free_text",
+              question: "What should the next iteration improve?",
+              maxLength: 500
+            }
+          ]
+        }
+      ]
+    });
+
+    render(
+      <SphinxQuiz
+        onRequestPrefetch={handlePrefetch}
+        prefetchWhenRemainingSteps={0}
+        steps={[
+          {
+            questions: [
+              {
+                type: "yes_no",
+                question: "Do you have a structured onboarding process?"
+              }
+            ]
+          }
+        ]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Yes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Submit step" }));
+
+    await waitFor(() => {
+      expect(handlePrefetch).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("What should the next iteration improve?")
+      ).toBeTruthy();
+    });
   });
 });

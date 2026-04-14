@@ -33,6 +33,23 @@ export interface SphinxQuizFlowCompletion {
   readonly submissions: readonly SphinxQuizStepSubmission[];
 }
 
+export interface SphinxQuizPrefetchRequest {
+  readonly submission: SphinxQuizStepSubmission;
+  readonly submissions: readonly SphinxQuizStepSubmission[];
+  readonly remainingSteps: number;
+}
+
+export type SphinxQuizPrefetchResult =
+  | {
+      readonly type: "steps";
+      readonly steps: readonly Step[];
+    }
+  | {
+      readonly type: "complete";
+      readonly scores?: ScoreResult;
+    }
+  | void;
+
 interface SphinxQuizBaseProps {
   readonly onComplete?: (scores: ScoreResult) => void;
   readonly isLoading?: boolean;
@@ -56,6 +73,12 @@ export interface SphinxQuizStepFlowProps extends SphinxQuizBaseProps {
   readonly onAnswer?: (answer: AnswerValue) => void;
   readonly onStepSubmit?: (submission: SphinxQuizStepSubmission) => void;
   readonly onStepsComplete?: (completion: SphinxQuizFlowCompletion) => void;
+  readonly onRequestPrefetch?:
+    | ((
+        request: SphinxQuizPrefetchRequest
+      ) => Promise<SphinxQuizPrefetchResult> | SphinxQuizPrefetchResult)
+    | undefined;
+  readonly prefetchWhenRemainingSteps?: number;
   readonly question?: never;
 }
 
@@ -319,6 +342,8 @@ function StepFlowQuiz({
   onComplete,
   onStepSubmit,
   onStepsComplete,
+  onRequestPrefetch,
+  prefetchWhenRemainingSteps = 1,
   isLoading = false,
   progress,
   theme = "default",
@@ -334,8 +359,10 @@ function StepFlowQuiz({
       isLoading={isLoading}
       onAnswer={onAnswer}
       onComplete={onComplete}
+      onRequestPrefetch={onRequestPrefetch}
       onStepSubmit={onStepSubmit}
       onStepsComplete={onStepsComplete}
+      prefetchWhenRemainingSteps={prefetchWhenRemainingSteps}
       progress={progress}
       steps={steps}
       theme={theme}
@@ -347,8 +374,10 @@ function StepFlowSession({
   steps,
   onAnswer,
   onComplete,
+  onRequestPrefetch,
   onStepSubmit,
   onStepsComplete,
+  prefetchWhenRemainingSteps,
   isLoading,
   progress,
   theme,
@@ -357,28 +386,36 @@ function StepFlowSession({
   readonly steps: readonly Step[];
   readonly onAnswer?: (answer: AnswerValue) => void;
   readonly onComplete?: (scores: ScoreResult) => void;
+  readonly onRequestPrefetch?:
+    | ((
+        request: SphinxQuizPrefetchRequest
+      ) => Promise<SphinxQuizPrefetchResult> | SphinxQuizPrefetchResult)
+    | undefined;
   readonly onStepSubmit?: (submission: SphinxQuizStepSubmission) => void;
   readonly onStepsComplete?: (completion: SphinxQuizFlowCompletion) => void;
+  readonly prefetchWhenRemainingSteps: number;
   readonly isLoading: boolean;
   readonly progress?: SphinxQuizProgress;
   readonly theme: SphinxQuizTheme;
   readonly className?: string;
 }) {
   const inputName = useId();
+  const [queuedSteps, setQueuedSteps] = useState<readonly Step[]>(steps);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [currentAnswers, setCurrentAnswers] = useState<AnswerValue[]>([]);
   const [submissions, setSubmissions] = useState<SphinxQuizStepSubmission[]>([]);
+  const [isPrefetching, setIsPrefetching] = useState(false);
 
-  const activeStep = steps[activeStepIndex];
+  const activeStep = queuedSteps[activeStepIndex];
   const activeQuestion = activeStep?.questions[activeQuestionIndex];
   const resolvedProgress =
     progress ??
     (activeQuestion
-      ? getAutoProgress(steps, activeStepIndex, activeQuestionIndex)
+      ? getAutoProgress(queuedSteps, activeStepIndex, activeQuestionIndex)
       : undefined);
-  const allQueuedStepsComplete = steps.length > 0 && activeStepIndex >= steps.length;
-  void onComplete;
+  const allQueuedStepsComplete =
+    queuedSteps.length > 0 && activeStepIndex >= queuedSteps.length;
 
   if (!activeQuestion) {
     return (
@@ -387,7 +424,7 @@ function StepFlowSession({
         progress={resolvedProgress}
         theme={theme}
       >
-        {isLoading ? (
+        {isLoading || isPrefetching ? (
           <LoadingSkeleton />
         ) : (
           <div className="opensphinx-card__header">
@@ -404,7 +441,7 @@ function StepFlowSession({
   }
 
   const isLastQuestionInStep = activeQuestionIndex === activeStep.questions.length - 1;
-  const isLastStepInQueue = activeStepIndex === steps.length - 1;
+  const isLastStepInQueue = activeStepIndex === queuedSteps.length - 1;
   const submitLabel = isLastQuestionInStep
     ? isLastStepInQueue
       ? "Submit step"
@@ -451,26 +488,64 @@ function StepFlowSession({
               step: activeStep,
               answers,
               stepIndex: activeStepIndex,
-              totalSteps: steps.length,
-              remainingSteps: Math.max(0, steps.length - activeStepIndex - 1)
+              totalSteps: queuedSteps.length,
+              remainingSteps: Math.max(0, queuedSteps.length - activeStepIndex - 1)
             };
 
             onStepSubmit?.(submission);
 
-            setSubmissions((previous) => {
-              const next = [...previous, submission];
+            const nextSubmissions = [...submissions, submission];
+            setSubmissions(nextSubmissions);
 
-              if (isLastStepInQueue) {
+            const remainingSteps = Math.max(
+              0,
+              queuedSteps.length - activeStepIndex - 1
+            );
+            const shouldPrefetch =
+              onRequestPrefetch !== undefined &&
+              !isPrefetching &&
+              remainingSteps <= prefetchWhenRemainingSteps;
+
+            if (shouldPrefetch && onRequestPrefetch) {
+              setIsPrefetching(true);
+
+              void Promise.resolve(
+                onRequestPrefetch({
+                  submission,
+                  submissions: nextSubmissions,
+                  remainingSteps
+                })
+              )
+                .then((result) => {
+                  if (!result) {
+                    return;
+                  }
+
+                  if (result.type === "steps" && result.steps.length > 0) {
+                    setQueuedSteps((current) => [...current, ...result.steps]);
+                    return;
+                  }
+
+                  if (result.type === "complete") {
+                    onComplete?.(result.scores ?? { dimensions: [] });
+                    onStepsComplete?.({
+                      submissions: nextSubmissions
+                    });
+                  }
+                })
+                .finally(() => {
+                  setIsPrefetching(false);
+                });
+            }
+
+            if (isLastStepInQueue) {
+              if (!shouldPrefetch) {
                 onStepsComplete?.({
-                  submissions: next
+                  submissions: nextSubmissions
                 });
               }
 
-              return next;
-            });
-
-            if (isLastStepInQueue) {
-              setActiveStepIndex(steps.length);
+              setActiveStepIndex(queuedSteps.length);
               setActiveQuestionIndex(0);
               setCurrentAnswers([]);
               return;
