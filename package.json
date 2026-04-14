@@ -12,6 +12,19 @@
   "files": [
     "dist"
   ],
+  "typesVersions": {
+    "*": {
+      "engine": [
+        "dist/engine/index.d.ts"
+      ],
+      "react": [
+        "dist/react/index.d.ts"
+      ],
+      "schemas": [
+        "dist/schemas/index.d.ts"
+      ]
+    }
+  },
   "exports": {
     "./react": {
       "types": "./dist/react/index.d.ts",
