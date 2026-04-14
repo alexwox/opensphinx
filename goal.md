@@ -443,11 +443,11 @@ Recommended workflow:
 
 ### Demo And Integration
 
-- `[not done]` Minimal `demo/` app exists.
-- `[not done]` Example server route wiring engine and UI together.
-- `[not done]` Example quiz config demonstrating intended adaptive behavior.
-- `[not done]` End-to-end step-prefetch flow shown in a real app.
-- `[not done]` Documentation/examples for Next.js.
+- `[completed]` Minimal `demo/` app exists.
+- `[completed]` Example server route wiring engine and UI together.
+- `[completed]` Example quiz config demonstrating intended adaptive behavior.
+- `[partially done]` End-to-end step-prefetch flow shown in a real app.
+- `[partially done]` Documentation/examples for Next.js.
 - `[not done]` Documentation/examples for other host environments like Remix or Express.
 
 ### Docs And Open Source Readiness

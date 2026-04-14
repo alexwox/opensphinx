@@ -57,7 +57,8 @@ export const demoQuizConfig: QuizConfig = {
             "Support",
             "Operations",
             "Content"
-          ]
+          ],
+          allowMultiple: false
         },
         {
           type: "free_text",

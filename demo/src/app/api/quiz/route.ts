@@ -9,7 +9,7 @@ import {
   SessionState
 } from "opensphinx/schemas";
 
-import { demoQuizConfig } from "../../lib/quiz-config";
+import { demoQuizConfig } from "../../../lib/quiz-config";
 
 export const dynamic = "force-dynamic";
 
