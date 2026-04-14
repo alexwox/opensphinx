@@ -30,9 +30,6 @@ importers:
       happy-dom:
         specifier: ^20.9.0
         version: 20.9.0
-      jsdom:
-        specifier: ^29.0.2
-        version: 29.0.2
       react:
         specifier: ^19.2.5
         version: 19.2.5
@@ -1608,6 +1605,7 @@ snapshots:
       '@csstools/css-color-parser': 4.1.0(@csstools/css-parser-algorithms@4.0.0(@csstools/css-tokenizer@4.0.0))(@csstools/css-tokenizer@4.0.0)
       '@csstools/css-parser-algorithms': 4.0.0(@csstools/css-tokenizer@4.0.0)
       '@csstools/css-tokenizer': 4.0.0
+    optional: true
 
   '@asamuzakjp/dom-selector@7.0.9':
     dependencies:
@@ -1615,8 +1613,10 @@ snapshots:
       bidi-js: 1.0.3
       css-tree: 3.2.1
       is-potential-custom-element-name: 1.0.1
+    optional: true
 
-  '@asamuzakjp/nwsapi@2.3.9': {}
+  '@asamuzakjp/nwsapi@2.3.9':
+    optional: true
 
   '@babel/code-frame@7.29.0':
     dependencies:
@@ -1631,13 +1631,16 @@ snapshots:
   '@bramus/specificity@2.4.2':
     dependencies:
       css-tree: 3.2.1
+    optional: true
 
-  '@csstools/color-helpers@6.0.2': {}
+  '@csstools/color-helpers@6.0.2':
+    optional: true
 
   '@csstools/css-calc@3.2.0(@csstools/css-parser-algorithms@4.0.0(@csstools/css-tokenizer@4.0.0))(@csstools/css-tokenizer@4.0.0)':
     dependencies:
       '@csstools/css-parser-algorithms': 4.0.0(@csstools/css-tokenizer@4.0.0)
       '@csstools/css-tokenizer': 4.0.0
+    optional: true
 
   '@csstools/css-color-parser@4.1.0(@csstools/css-parser-algorithms@4.0.0(@csstools/css-tokenizer@4.0.0))(@csstools/css-tokenizer@4.0.0)':
     dependencies:
@@ -1645,16 +1648,20 @@ snapshots:
       '@csstools/css-calc': 3.2.0(@csstools/css-parser-algorithms@4.0.0(@csstools/css-tokenizer@4.0.0))(@csstools/css-tokenizer@4.0.0)
       '@csstools/css-parser-algorithms': 4.0.0(@csstools/css-tokenizer@4.0.0)
       '@csstools/css-tokenizer': 4.0.0
+    optional: true
 
   '@csstools/css-parser-algorithms@4.0.0(@csstools/css-tokenizer@4.0.0)':
     dependencies:
       '@csstools/css-tokenizer': 4.0.0
+    optional: true
 
   '@csstools/css-syntax-patches-for-csstree@1.1.3(css-tree@3.2.1)':
     optionalDependencies:
       css-tree: 3.2.1
+    optional: true
 
-  '@csstools/css-tokenizer@4.0.0': {}
+  '@csstools/css-tokenizer@4.0.0':
+    optional: true
 
   '@emnapi/core@1.9.2':
     dependencies:
@@ -1750,7 +1757,8 @@ snapshots:
   '@esbuild/win32-x64@0.27.7':
     optional: true
 
-  '@exodus/bytes@1.15.0': {}
+  '@exodus/bytes@1.15.0':
+    optional: true
 
   '@img/colour@1.1.0':
     optional: true
@@ -2159,6 +2167,7 @@ snapshots:
   bidi-js@1.0.3:
     dependencies:
       require-from-string: 2.0.2
+    optional: true
 
   brace-expansion@5.0.5:
     dependencies:
@@ -2193,6 +2202,7 @@ snapshots:
     dependencies:
       mdn-data: 2.27.1
       source-map-js: 1.2.1
+    optional: true
 
   csstype@3.2.3: {}
 
@@ -2202,12 +2212,14 @@ snapshots:
       whatwg-url: 16.0.1
     transitivePeerDependencies:
       - '@noble/hashes'
+    optional: true
 
   debug@4.4.3:
     dependencies:
       ms: 2.1.3
 
-  decimal.js@10.6.0: {}
+  decimal.js@10.6.0:
+    optional: true
 
   dequal@2.0.3: {}
 
@@ -2215,7 +2227,8 @@ snapshots:
 
   dom-accessibility-api@0.5.16: {}
 
-  entities@6.0.1: {}
+  entities@6.0.1:
+    optional: true
 
   entities@7.0.1: {}
 
@@ -2294,8 +2307,10 @@ snapshots:
       '@exodus/bytes': 1.15.0
     transitivePeerDependencies:
       - '@noble/hashes'
+    optional: true
 
-  is-potential-custom-element-name@1.0.1: {}
+  is-potential-custom-element-name@1.0.1:
+    optional: true
 
   joycon@3.1.1: {}
 
@@ -2326,6 +2341,7 @@ snapshots:
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - '@noble/hashes'
+    optional: true
 
   json-schema@0.4.0: {}
 
@@ -2392,7 +2408,8 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  mdn-data@2.27.1: {}
+  mdn-data@2.27.1:
+    optional: true
 
   minimatch@10.2.5:
     dependencies:
@@ -2451,6 +2468,7 @@ snapshots:
   parse5@8.0.0:
     dependencies:
       entities: 6.0.1
+    optional: true
 
   path-scurry@2.0.2:
     dependencies:
@@ -2495,7 +2513,8 @@ snapshots:
       ansi-styles: 5.2.0
       react-is: 17.0.2
 
-  punycode@2.3.1: {}
+  punycode@2.3.1:
+    optional: true
 
   react-dom@19.2.5(react@19.2.5):
     dependencies:
@@ -2508,7 +2527,8 @@ snapshots:
 
   readdirp@4.1.2: {}
 
-  require-from-string@2.0.2: {}
+  require-from-string@2.0.2:
+    optional: true
 
   resolve-from@5.0.0: {}
 
@@ -2572,6 +2592,7 @@ snapshots:
   saxes@6.0.0:
     dependencies:
       xmlchars: 2.2.0
+    optional: true
 
   scheduler@0.27.0: {}
 
@@ -2635,7 +2656,8 @@ snapshots:
       tinyglobby: 0.2.16
       ts-interface-checker: 0.1.13
 
-  symbol-tree@3.2.4: {}
+  symbol-tree@3.2.4:
+    optional: true
 
   thenify-all@1.6.0:
     dependencies:
@@ -2658,19 +2680,23 @@ snapshots:
 
   tinyrainbow@3.1.0: {}
 
-  tldts-core@7.0.28: {}
+  tldts-core@7.0.28:
+    optional: true
 
   tldts@7.0.28:
     dependencies:
       tldts-core: 7.0.28
+    optional: true
 
   tough-cookie@6.0.1:
     dependencies:
       tldts: 7.0.28
+    optional: true
 
   tr46@6.0.0:
     dependencies:
       punycode: 2.3.1
+    optional: true
 
   tree-kill@1.2.2: {}
 
@@ -2712,7 +2738,8 @@ snapshots:
 
   undici-types@7.19.2: {}
 
-  undici@7.25.0: {}
+  undici@7.25.0:
+    optional: true
 
   vite@8.0.8(@types/node@25.6.0)(esbuild@0.27.7):
     dependencies:
@@ -2759,12 +2786,15 @@ snapshots:
   w3c-xmlserializer@5.0.0:
     dependencies:
       xml-name-validator: 5.0.0
+    optional: true
 
-  webidl-conversions@8.0.1: {}
+  webidl-conversions@8.0.1:
+    optional: true
 
   whatwg-mimetype@3.0.0: {}
 
-  whatwg-mimetype@5.0.0: {}
+  whatwg-mimetype@5.0.0:
+    optional: true
 
   whatwg-url@16.0.1:
     dependencies:
@@ -2773,6 +2803,7 @@ snapshots:
       webidl-conversions: 8.0.1
     transitivePeerDependencies:
       - '@noble/hashes'
+    optional: true
 
   why-is-node-running@2.3.0:
     dependencies:
@@ -2781,8 +2812,10 @@ snapshots:
 
   ws@8.20.0: {}
 
-  xml-name-validator@5.0.0: {}
+  xml-name-validator@5.0.0:
+    optional: true
 
-  xmlchars@2.2.0: {}
+  xmlchars@2.2.0:
+    optional: true
 
   zod@4.3.6: {}
