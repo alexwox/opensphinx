@@ -15,9 +15,12 @@ export { QuizConfig, ScoringDimension } from "./quiz-config";
 
 export { DimensionScore, ScoreResult } from "./scoring";
 
+export { Step } from "./step";
+
 export {
   EngineBatchResponse,
   EngineResponse,
+  EngineStepResponse,
   SessionHistoryItem,
   SessionState
 } from "./session";

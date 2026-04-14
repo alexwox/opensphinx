@@ -15,9 +15,11 @@ import { SphinxQuiz } from "opensphinx/react";
 import {
   EngineBatchResponse,
   EngineResponse,
+  EngineStepResponse,
   QuestionSpec,
   QuizConfig,
-  SessionState
+  SessionState,
+  Step
 } from "opensphinx/schemas";
 
 describe("opensphinx public exports", () => {
@@ -127,6 +129,8 @@ describe("opensphinx public exports", () => {
     expect(config.batchSize).toBe(3);
     expect(config.language).toBe("en");
     expect(session.pendingQuestions).toEqual([]);
+    expect(session.pendingSteps).toEqual([]);
+    expect(session.completedSteps).toBe(0);
     expect(session.history).toHaveLength(1);
     expect(response.type).toBe("question");
   });
@@ -139,7 +143,70 @@ describe("opensphinx public exports", () => {
     expect(engine.config.minQuestions).toBe(5);
     expect(engine.config.maxQuestions).toBe(15);
     expect(engine.config.batchSize).toBe(3);
+    expect(engine.config.maxSteps).toBeUndefined();
     expect(engine.config.language).toBe("en");
+  });
+
+  it("exposes the step schema and step response schema", () => {
+    const step = Step.parse({
+      questions: [
+        {
+          type: "yes_no",
+          question: "Do you enjoy dynamic forms?"
+        }
+      ]
+    });
+
+    const response = EngineStepResponse.parse({
+      type: "step",
+      step
+    });
+
+    expect(step.questions).toHaveLength(1);
+    expect(response.type).toBe("step");
+  });
+
+  it("serves explicit seed steps through generateStep", async () => {
+    const engine = createQuizEngine({
+      config: {
+        ...baseConfig,
+        batchSize: 2,
+        seedSteps: [
+          {
+            questions: [
+              {
+                type: "yes_no",
+                question: "Do you enjoy pair programming?"
+              }
+            ]
+          },
+          {
+            questions: [
+              {
+                type: "free_text",
+                question: "What makes collaboration effective for you?",
+                maxLength: 500
+              }
+            ]
+          }
+        ]
+      }
+    });
+
+    const response = await engine.generateStep({
+      sessionId: "session_seed_step",
+      config: engine.config,
+      history: [],
+      completedSteps: 1
+    });
+
+    expect(response).toMatchObject({
+      type: "step"
+    });
+    if (response.type !== "step") {
+      throw new Error("Expected a seed step.");
+    }
+    expect(response.step.questions[0]?.type).toBe("free_text");
   });
 
   it("serves seed batches before AI or fallback questions", async () => {
@@ -209,6 +276,42 @@ describe("opensphinx public exports", () => {
     });
   });
 
+  it("uses pending steps before generating a new step", async () => {
+    const engine = createQuizEngine({
+      config: {
+        ...baseConfig,
+        batchSize: 2
+      }
+    });
+
+    const response = await engine.generateStep({
+      sessionId: "session_pending_step",
+      config: engine.config,
+      history: [],
+      pendingSteps: [
+        {
+          questions: [
+            {
+              type: "slider",
+              question: "How ready is your team?",
+              min: 1,
+              max: 10,
+              step: 1
+            }
+          ]
+        }
+      ]
+    });
+
+    expect(response).toMatchObject({
+      type: "step"
+    });
+    if (response.type !== "step") {
+      throw new Error("Expected a pending step.");
+    }
+    expect(response.step.questions[0]?.type).toBe("slider");
+  });
+
   it("falls back to a generic question before minimum completion", async () => {
     const engine = createQuizEngine({
       config: {
@@ -243,19 +346,21 @@ describe("opensphinx public exports", () => {
   it("uses the AI model to generate the next batch", async () => {
     generateObjectMock.mockResolvedValueOnce({
       object: {
-        type: "questions",
-        questions: [
-          {
-            type: "rating",
-            question: "How confident are you in your onboarding process?",
-            max: 5
-          },
-          {
-            type: "free_text",
-            question: "What part of onboarding feels weakest?",
-            maxLength: 500
-          }
-        ]
+        type: "step",
+        step: {
+          questions: [
+            {
+              type: "rating",
+              question: "How confident are you in your onboarding process?",
+              max: 5
+            },
+            {
+              type: "free_text",
+              question: "What part of onboarding feels weakest?",
+              maxLength: 500
+            }
+          ]
+        }
       }
     });
 
@@ -313,6 +418,36 @@ describe("opensphinx public exports", () => {
     const response = await engine.generateBatch({
       sessionId: "session_ai_complete",
       config: engine.config,
+      history: [
+        {
+          question: {
+            type: "yes_no",
+            question: "Do you like typed APIs?"
+          },
+          answer: true
+        }
+      ]
+    });
+
+    expect(response).toMatchObject({
+      type: "complete"
+    });
+  });
+
+  it("respects a hard maxSteps limit even if more questions could be asked", async () => {
+    const engine = createQuizEngine({
+      config: {
+        ...baseConfig,
+        minQuestions: 1,
+        maxQuestions: 10,
+        maxSteps: 2
+      }
+    });
+
+    const response = await engine.generateStep({
+      sessionId: "session_max_steps",
+      config: engine.config,
+      completedSteps: 2,
       history: [
         {
           question: {

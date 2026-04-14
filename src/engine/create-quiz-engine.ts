@@ -2,10 +2,12 @@ import { generateObject } from "ai";
 import {
   EngineBatchResponse,
   EngineResponse,
+  EngineStepResponse,
   QuestionSpec,
   QuizConfig,
   ScoreResult,
-  SessionState
+  SessionState,
+  Step
 } from "../schemas";
 import type { input, output } from "zod";
 import { z } from "zod";
@@ -19,11 +21,13 @@ export type SessionStateInput = input<typeof SessionState>;
 export type ScoreResultInput = input<typeof ScoreResult>;
 export type QuizModel = Parameters<typeof generateObject>[0]["model"];
 
-function createNextBatchDecisionSchema(batchSize: number) {
+function createNextStepDecisionSchema(batchSize: number) {
   return z.discriminatedUnion("type", [
     z.object({
-      type: z.literal("questions"),
-      questions: z.array(QuestionSpec).min(1).max(batchSize)
+      type: z.literal("step"),
+      step: z.object({
+        questions: z.array(QuestionSpec).min(1).max(batchSize)
+      })
     }),
     z.object({
       type: z.literal("complete")
@@ -38,6 +42,9 @@ export interface CreateQuizEngineOptions {
 
 export interface QuizEngine {
   readonly config: output<typeof QuizConfig>;
+  generateStep(
+    sessionState: SessionStateInput
+  ): Promise<output<typeof EngineStepResponse>>;
   generateBatch(
     sessionState: SessionStateInput
   ): Promise<output<typeof EngineBatchResponse>>;
@@ -77,50 +84,113 @@ function buildFallbackQuestion(
   });
 }
 
-function buildFallbackBatch(
+function buildFallbackStep(
   config: output<typeof QuizConfig>,
   historyLength: number
 ) {
   const remainingSlots = Math.max(0, config.maxQuestions - historyLength);
-  const batchCount = Math.max(1, Math.min(config.batchSize, remainingSlots));
+  const stepQuestionCount = Math.max(1, Math.min(config.batchSize, remainingSlots));
 
-  return Array.from({ length: batchCount }, (_, index) =>
-    buildFallbackQuestion(config, historyLength + index)
-  );
+  return Step.parse({
+    questions: Array.from({ length: stepQuestionCount }, (_, index) =>
+      buildFallbackQuestion(config, historyLength + index)
+    )
+  });
 }
 
-function getSeedBatch(
+function getSeedSteps(config: output<typeof QuizConfig>) {
+  if (config.seedSteps && config.seedSteps.length > 0) {
+    return config.seedSteps.map((step) => Step.parse(step));
+  }
+
+  if (!config.seedQuestions || config.seedQuestions.length === 0) {
+    return [];
+  }
+
+  const seedSteps: Array<output<typeof Step>> = [];
+
+  for (let index = 0; index < config.seedQuestions.length; index += config.batchSize) {
+    seedSteps.push(
+      Step.parse({
+        questions: config.seedQuestions.slice(index, index + config.batchSize)
+      })
+    );
+  }
+
+  return seedSteps;
+}
+
+function getSeedStep(
   config: output<typeof QuizConfig>,
-  historyLength: number
+  completedSteps: number
 ) {
-  const seedQuestions = config.seedQuestions ?? [];
-
-  return seedQuestions.slice(historyLength, historyLength + config.batchSize);
+  const seedSteps = getSeedSteps(config);
+  return seedSteps[completedSteps];
 }
 
-async function generateBatchWithModel(
+function canComplete(
+  config: output<typeof QuizConfig>,
+  sessionState: output<typeof SessionState>
+) {
+  const meetsQuestionMinimum = sessionState.history.length >= config.minQuestions;
+  const meetsStepMinimum =
+    config.minSteps === undefined || sessionState.completedSteps >= config.minSteps;
+
+  return meetsQuestionMinimum && meetsStepMinimum;
+}
+
+function reachedHardLimit(
+  config: output<typeof QuizConfig>,
+  sessionState: output<typeof SessionState>
+) {
+  const reachedQuestionLimit = sessionState.history.length >= config.maxQuestions;
+  const reachedStepLimit =
+    config.maxSteps !== undefined && sessionState.completedSteps >= config.maxSteps;
+
+  return reachedQuestionLimit || reachedStepLimit;
+}
+
+function trimStepToRemainingQuestionBudget(
+  step: output<typeof Step>,
+  config: output<typeof QuizConfig>,
+  sessionState: output<typeof SessionState>
+) {
+  const remainingQuestionSlots = Math.max(
+    0,
+    config.maxQuestions - sessionState.history.length
+  );
+
+  return Step.parse({
+    questions: step.questions.slice(
+      0,
+      Math.max(1, Math.min(step.questions.length, remainingQuestionSlots))
+    )
+  });
+}
+
+async function generateStepWithModel(
   model: QuizModel,
   sessionState: output<typeof SessionState>
 ) {
   const prompt = buildPrompt(sessionState, sessionState.config.batchSize);
-  const NextBatchDecision = createNextBatchDecisionSchema(
+  const NextStepDecision = createNextStepDecisionSchema(
     sessionState.config.batchSize
   );
 
   const { object } = await generateObject({
     model,
-    schema: NextBatchDecision,
-    schemaName: "OpenSphinxNextBatch",
+    schema: NextStepDecision,
+    schemaName: "OpenSphinxNextStep",
     schemaDescription:
-      "Decide whether to return the next batch of quiz questions or mark the quiz complete.",
+      "Decide whether to return the next quiz step or mark the quiz complete.",
     prompt,
     maxRetries: 0
   });
 
-  return NextBatchDecision.parse(object);
+  return NextStepDecision.parse(object);
 }
 
-async function generateBatchWithRetry(
+async function generateStepWithRetry(
   model: QuizModel,
   sessionState: output<typeof SessionState>
 ) {
@@ -128,15 +198,15 @@ async function generateBatchWithRetry(
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      return await generateBatchWithModel(model, sessionState);
+      return await generateStepWithModel(model, sessionState);
     } catch (error) {
       lastError = error;
     }
   }
 
   return {
-    type: "questions",
-    questions: buildFallbackBatch(sessionState.config, sessionState.history.length),
+    type: "step",
+    step: buildFallbackStep(sessionState.config, sessionState.history.length),
     error: lastError
   } as const;
 }
@@ -146,72 +216,86 @@ export function createQuizEngine(
 ): QuizEngine {
   const config = normalizeConfig(options.config);
 
-  async function runGenerateBatch(sessionState: SessionStateInput) {
+  async function runGenerateStep(sessionState: SessionStateInput) {
     const normalizedSession = normalizeSession(sessionState, config);
 
-    if (normalizedSession.history.length >= config.maxQuestions) {
-      return EngineBatchResponse.parse({
+    if (normalizedSession.pendingSteps.length > 0) {
+      return EngineStepResponse.parse({
+        type: "step",
+        step: normalizedSession.pendingSteps[0]
+      });
+    }
+
+    if (reachedHardLimit(config, normalizedSession)) {
+      return EngineStepResponse.parse({
         type: "complete",
         scores: scoreSession(normalizedSession)
       });
     }
 
-    const seedBatch = getSeedBatch(config, normalizedSession.history.length);
+    const seedStep = getSeedStep(config, normalizedSession.completedSteps);
 
-    if (seedBatch.length > 0) {
-      return EngineBatchResponse.parse({
-        type: "questions",
-        questions: seedBatch
+    if (seedStep) {
+      return EngineStepResponse.parse({
+        type: "step",
+        step: trimStepToRemainingQuestionBudget(seedStep, config, normalizedSession)
       });
     }
 
     if (options.model) {
-      const nextBatch = await generateBatchWithRetry(
+      const nextStep = await generateStepWithRetry(
         options.model,
         normalizedSession
       );
 
-      if (
-        nextBatch.type === "complete" &&
-        normalizedSession.history.length >= config.minQuestions
-      ) {
-        return EngineBatchResponse.parse({
+      if (nextStep.type === "complete" && canComplete(config, normalizedSession)) {
+        return EngineStepResponse.parse({
           type: "complete",
           scores: scoreSession(normalizedSession)
         });
       }
 
-      if (nextBatch.type === "questions") {
-        return EngineBatchResponse.parse({
-          type: "questions",
-          questions: nextBatch.questions.slice(
-            0,
-            Math.min(
-              config.batchSize,
-              Math.max(1, config.maxQuestions - normalizedSession.history.length)
-            )
+      if (nextStep.type === "step") {
+        return EngineStepResponse.parse({
+          type: "step",
+          step: trimStepToRemainingQuestionBudget(
+            nextStep.step,
+            config,
+            normalizedSession
           )
         });
       }
     }
 
-    if (normalizedSession.history.length >= config.minQuestions) {
-      return EngineBatchResponse.parse({
+    if (canComplete(config, normalizedSession)) {
+      return EngineStepResponse.parse({
         type: "complete",
         scores: scoreSession(normalizedSession)
       });
     }
 
-    return EngineBatchResponse.parse({
-      type: "questions",
-      questions: buildFallbackBatch(config, normalizedSession.history.length)
+    return EngineStepResponse.parse({
+      type: "step",
+      step: buildFallbackStep(config, normalizedSession.history.length)
     });
   }
 
   return {
     config,
+    async generateStep(sessionState) {
+      return runGenerateStep(sessionState);
+    },
     async generateBatch(sessionState) {
-      return runGenerateBatch(sessionState);
+      const nextStep = await runGenerateStep(sessionState);
+
+      if (nextStep.type === "complete") {
+        return EngineBatchResponse.parse(nextStep);
+      }
+
+      return EngineBatchResponse.parse({
+        type: "questions",
+        questions: nextStep.step.questions
+      });
     },
     async generateNext(sessionState) {
       const normalizedSession = normalizeSession(sessionState, config);
@@ -223,15 +307,22 @@ export function createQuizEngine(
         });
       }
 
-      const nextBatch = await runGenerateBatch(normalizedSession);
+      if (normalizedSession.pendingSteps.length > 0) {
+        return EngineResponse.parse({
+          type: "question",
+          question: normalizedSession.pendingSteps[0].questions[0]
+        });
+      }
 
-      if (nextBatch.type === "complete") {
-        return EngineResponse.parse(nextBatch);
+      const nextStep = await runGenerateStep(normalizedSession);
+
+      if (nextStep.type === "complete") {
+        return EngineResponse.parse(nextStep);
       }
 
       return EngineResponse.parse({
         type: "question",
-        question: nextBatch.questions[0]
+        question: nextStep.step.questions[0]
       });
     },
     async score(sessionState) {

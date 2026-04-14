@@ -394,12 +394,12 @@ Recommended workflow:
 ### Shared Contracts
 
 - `[partially done]` Question type catalog exists and is schema-validated.
-- `[partially done]` Quiz config supports `systemPrompt`, `seedQuestions`, and `batchSize`.
-- `[not done]` First-class step schema exists.
-- `[not done]` Config supports explicit step-level pacing rules like `maxSteps`.
-- `[partially done]` Session state supports answered history and pending queued questions.
+- `[partially done]` Quiz config supports `systemPrompt`, `seedQuestions`, `seedSteps`, `batchSize`, and step limits.
+- `[completed]` First-class step schema exists.
+- `[completed]` Config supports explicit step-level pacing rules like `maxSteps`.
+- `[partially done]` Session state supports answered history, pending queued questions, pending steps, and completed step counts.
 - `[partially done]` Engine batch/complete response contract exists.
-- `[not done]` Step-oriented response contract is finalized and stable.
+- `[partially done]` Step-oriented response contract exists but is not yet finalized as the sole preferred API.
 - `[not done]` Session serialization helpers for app/framework storage.
 - `[not done]` Finalized public contract review for long-term API stability.
 
@@ -407,13 +407,13 @@ Recommended workflow:
 
 - `[partially done]` `createQuizEngine()` exists with typed config normalization.
 - `[partially done]` Seed-question-first behavior exists.
-- `[not done]` Seed content is modeled as explicit multi-step opening flow.
+- `[partially done]` Seed content can be modeled as explicit multi-step opening flow.
 - `[partially done]` AI-backed batch generation exists.
-- `[not done]` Step-based generation is first-class rather than batch-first under the hood.
+- `[completed]` Step-based generation is first-class rather than batch-first under the hood.
 - `[partially done]` Retry-on-invalid-generation behavior exists.
 - `[partially done]` Safe fallback question batch exists.
 - `[partially done]` Completion logic respects hard bounds like `minQuestions` and `maxQuestions`.
-- `[not done]` Completion logic fully respects developer-configured hard step limits.
+- `[completed]` Completion logic fully respects developer-configured hard step limits.
 - `[not done]` Background/prefetch-oriented replenishment strategy feels production-ready.
 - `[not done]` Strong prompt strategy for adaptive follow-up quality.
 - `[not done]` Better duplicate-question avoidance and history-awareness.
