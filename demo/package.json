@@ -7,5 +7,17 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^3.0.52",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "next": "^16.2.3",
+    "opensphinx": "workspace:^",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
   }
 }
