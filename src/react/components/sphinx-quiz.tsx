@@ -406,6 +406,7 @@ function StepFlowSession({
   const [currentAnswers, setCurrentAnswers] = useState<AnswerValue[]>([]);
   const [submissions, setSubmissions] = useState<SphinxQuizStepSubmission[]>([]);
   const [isPrefetching, setIsPrefetching] = useState(false);
+  const [isAwaitingReplacementStep, setIsAwaitingReplacementStep] = useState(false);
 
   const activeStep = queuedSteps[activeStepIndex];
   const activeQuestion = activeStep?.questions[activeQuestionIndex];
@@ -424,7 +425,7 @@ function StepFlowSession({
         progress={resolvedProgress}
         theme={theme}
       >
-        {isLoading || isPrefetching ? (
+        {isLoading ? (
           <LoadingSkeleton />
         ) : (
           <div className="opensphinx-card__header">
@@ -456,7 +457,7 @@ function StepFlowSession({
     >
       <header className="opensphinx-card__header">
         <p className="opensphinx-question-type">
-          Step {activeStepIndex + 1} of {steps.length}
+          Step {Math.min(activeStepIndex + 1, queuedSteps.length)} of {queuedSteps.length}
         </p>
         <h2 className="opensphinx-question">{activeQuestion.question}</h2>
       </header>
@@ -467,7 +468,7 @@ function StepFlowSession({
         <StepQuestionForm
           key={`${activeStepIndex}:${activeQuestionIndex}:${getQuestionKey(activeQuestion)}`}
           inputName={inputName}
-          isLoading={isLoading}
+          isLoading={isLoading || isAwaitingReplacementStep}
           onSubmitAnswer={(normalizedAnswer) => {
             onAnswer?.(normalizedAnswer);
 
@@ -508,6 +509,7 @@ function StepFlowSession({
 
             if (shouldPrefetch && onRequestPrefetch) {
               setIsPrefetching(true);
+              const nextVisibleStepIndex = queuedSteps.length;
 
               void Promise.resolve(
                 onRequestPrefetch({
@@ -518,20 +520,33 @@ function StepFlowSession({
               )
                 .then((result) => {
                   if (!result) {
+                    setIsAwaitingReplacementStep(false);
                     return;
                   }
 
                   if (result.type === "steps" && result.steps.length > 0) {
                     setQueuedSteps((current) => [...current, ...result.steps]);
+
+                    if (isLastStepInQueue) {
+                      setActiveStepIndex(nextVisibleStepIndex);
+                      setActiveQuestionIndex(0);
+                      setCurrentAnswers([]);
+                      setIsAwaitingReplacementStep(false);
+                    }
+
                     return;
                   }
 
                   if (result.type === "complete") {
+                    setIsAwaitingReplacementStep(false);
                     onComplete?.(result.scores ?? { dimensions: [] });
                     onStepsComplete?.({
                       submissions: nextSubmissions
                     });
                   }
+                })
+                .catch(() => {
+                  setIsAwaitingReplacementStep(false);
                 })
                 .finally(() => {
                   setIsPrefetching(false);
@@ -543,11 +558,13 @@ function StepFlowSession({
                 onStepsComplete?.({
                   submissions: nextSubmissions
                 });
+                setActiveStepIndex(queuedSteps.length);
+                setActiveQuestionIndex(0);
+                setCurrentAnswers([]);
+                return;
               }
 
-              setActiveStepIndex(queuedSteps.length);
-              setActiveQuestionIndex(0);
-              setCurrentAnswers([]);
+              setIsAwaitingReplacementStep(true);
               return;
             }
 

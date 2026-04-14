@@ -9,6 +9,22 @@ afterEach(() => {
   cleanup();
 });
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+
+  const promise = new Promise<T>((innerResolve, innerReject) => {
+    resolve = innerResolve;
+    reject = innerReject;
+  });
+
+  return {
+    promise,
+    resolve,
+    reject
+  };
+}
+
 describe("SphinxQuiz step flow", () => {
   it("renders prefetched steps and advances through them", () => {
     const handleAnswer = vi.fn();
@@ -115,20 +131,17 @@ describe("SphinxQuiz step flow", () => {
   });
 
   it("requests and appends more steps when the queue gets low", async () => {
-    const handlePrefetch = vi.fn().mockResolvedValue({
-      type: "steps",
-      steps: [
-        {
-          questions: [
-            {
-              type: "free_text",
-              question: "What should the next iteration improve?",
-              maxLength: 500
-            }
-          ]
-        }
-      ]
-    });
+    const deferred = createDeferred<{
+      type: "steps";
+      steps: Array<{
+        questions: Array<{
+          type: "free_text";
+          question: string;
+          maxLength: number;
+        }>;
+      }>;
+    }>();
+    const handlePrefetch = vi.fn().mockReturnValue(deferred.promise);
 
     render(
       <SphinxQuiz
@@ -154,10 +167,34 @@ describe("SphinxQuiz step flow", () => {
       expect(handlePrefetch).toHaveBeenCalledTimes(1);
     });
 
+    expect(
+      screen.queryByText("Preparing the next question...")
+    ).toBeNull();
+    expect(
+      screen.getByText("Do you have a structured onboarding process?")
+    ).toBeTruthy();
+    expect(screen.getByText("Step 1 of 1")).toBeTruthy();
+
+    deferred.resolve({
+      type: "steps",
+      steps: [
+        {
+          questions: [
+            {
+              type: "free_text",
+              question: "What should the next iteration improve?",
+              maxLength: 500
+            }
+          ]
+        }
+      ]
+    });
+
     await waitFor(() => {
       expect(
         screen.getByText("What should the next iteration improve?")
       ).toBeTruthy();
     });
+    expect(screen.getByText("Step 2 of 2")).toBeTruthy();
   });
 });

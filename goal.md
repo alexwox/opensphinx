@@ -197,6 +197,9 @@ The intended UX is:
 - while the user is on the current step, the server prepares the next step
 - client asks for replenishment before the queued steps are exhausted
 - transitions feel fast and continuous
+- step numbering and progress must reflect the real queued flow
+- the user should not see a blocking loading screen between normal step transitions
+- visible loading states should be reserved for true startup, failure, or exceptional slow-path cases
 
 ### Phase 4: Completion
 
@@ -296,6 +299,8 @@ The frontend experience should feel:
 - lightweight
 - mobile-first
 - one-question-at-a-time
+- seamless between steps
+- trustworthy in its progress and step display
 
 The default visual direction should be:
 
@@ -434,7 +439,8 @@ Recommended workflow:
 - `[partially done]` All current question schema variants have basic rendering support.
 - `[partially done]` Loading and progress states exist.
 - `[partially done]` Step-aware React flow that consumes prefetched steps directly.
-- `[partially done]` Smooth background replenishment UX between steps.
+- `[partially done]` Step numbering and progress reflect the real queued flow.
+- `[partially done]` Smooth background replenishment UX between steps without blocking loaders in the normal path.
 - `[not done]` Polished visual design aligned with the intended product direction.
 - `[not done]` ShadCN-style component quality and ergonomics.
 - `[not done]` Theme customization that feels complete and intentional.
