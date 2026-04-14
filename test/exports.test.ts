@@ -1,3 +1,5 @@
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { createQuizEngine } from "opensphinx/engine";
@@ -31,6 +33,43 @@ describe("opensphinx public exports", () => {
 
   it("resolves the react subpath", () => {
     expect(typeof SphinxQuiz).toBe("function");
+  });
+
+  it("renders the React quiz surface", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(SphinxQuiz, {
+        question: QuestionSpec.parse({
+          type: "mcq",
+          question: "How do you prefer to work?",
+          options: ["Solo", "Pair", "Team"]
+        }),
+        onAnswer: () => undefined,
+        progress: {
+          current: 1,
+          max: 3
+        }
+      })
+    );
+
+    expect(html).toContain("How do you prefer to work?");
+    expect(html).toContain("Continue");
+    expect(html).toContain("1 / 3");
+    expect(html).toContain("Solo");
+  });
+
+  it("renders a loading state in the React quiz surface", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(SphinxQuiz, {
+        question: QuestionSpec.parse({
+          type: "free_text",
+          question: "Tell us more."
+        }),
+        isLoading: true,
+        onAnswer: () => undefined
+      })
+    );
+
+    expect(html).toContain("Preparing the next question");
   });
 
   it("resolves the schemas subpath", async () => {

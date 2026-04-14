@@ -18,7 +18,7 @@ The current focus is package structure only. Product-specific quiz logic is inte
 - Vitest smoke tests for public subpath imports
 - Real shared Zod schemas in `opensphinx/schemas`
 - Deterministic scaffold engine in `opensphinx/engine`
-- Placeholder React entry point in `opensphinx/react`
+- One-question React quiz UI in `opensphinx/react`
 
 ## Install
 
