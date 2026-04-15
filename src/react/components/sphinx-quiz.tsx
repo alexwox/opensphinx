@@ -69,16 +69,8 @@ interface SphinxQuizBaseProps {
   readonly className?: string;
 }
 
-export interface SphinxQuizSingleQuestionProps extends SphinxQuizBaseProps {
-  readonly question: QuestionSpec;
-  readonly onAnswer: (answer: AnswerValue) => void;
-  readonly step?: never;
-  readonly steps?: never;
-  readonly onStepSubmit?: never;
-  readonly onStepsComplete?: never;
-}
-
-export interface SphinxQuizStepFlowProps extends SphinxQuizBaseProps {
+/** Step-first quiz: pass `steps` and/or `step` (source of truth for what to render). */
+export interface SphinxQuizProps extends SphinxQuizBaseProps {
   readonly step?: Step;
   readonly steps?: readonly Step[];
   readonly onAnswer?: (answer: AnswerValue) => void;
@@ -90,11 +82,7 @@ export interface SphinxQuizStepFlowProps extends SphinxQuizBaseProps {
       ) => Promise<SphinxQuizPrefetchResult> | SphinxQuizPrefetchResult)
     | undefined;
   readonly prefetchWhenRemainingSteps?: number;
-  readonly question?: never;
 }
-
-/** Step-first quiz UI (default export {@link SphinxQuiz}). */
-export type SphinxQuizProps = SphinxQuizStepFlowProps;
 
 function getInitialDraft(question: QuestionSpec): QuestionDraftValue {
   switch (question.type) {
@@ -270,98 +258,6 @@ function QuizShell({
   );
 }
 
-/** One question at a time (legacy / minimal). Prefer {@link SphinxQuiz} with `steps`. */
-export function SphinxQuizSingle({
-  question,
-  onAnswer,
-  onComplete,
-  isLoading = false,
-  progress,
-  theme = "default",
-  className
-}: SphinxQuizSingleQuestionProps) {
-  void onComplete;
-
-  return (
-    <QuizShell
-      className={className}
-      progress={progress}
-      theme={theme}
-    >
-      <header className="opensphinx-card__header">
-        <p className="opensphinx-question-type">{question.type}</p>
-        <h2 className="opensphinx-question">{question.question}</h2>
-      </header>
-
-      {isLoading ? (
-        <LoadingSkeleton />
-      ) : (
-        <SingleQuestionForm
-          key={getQuestionKey(question)}
-          isLoading={isLoading}
-          onAnswer={onAnswer}
-          question={question}
-        />
-      )}
-    </QuizShell>
-  );
-}
-
-function SingleQuestionForm({
-  question,
-  onAnswer,
-  isLoading
-}: {
-  readonly question: QuestionSpec;
-  readonly onAnswer: (answer: AnswerValue) => void;
-  readonly isLoading: boolean;
-}) {
-  const inputName = useId();
-  const [draft, setDraft] = useState<QuestionDraftValue>(() =>
-    getInitialDraft(question)
-  );
-
-  const normalizedAnswer = useMemo(
-    () => normalizeAnswer(question, draft),
-    [draft, question]
-  );
-
-  const isReadyToSubmit = normalizedAnswer !== null && !isLoading;
-
-  return (
-    <form
-      className="opensphinx-form"
-      onSubmit={(event) => {
-        event.preventDefault();
-
-        if (normalizedAnswer === null) {
-          return;
-        }
-
-        onAnswer(normalizedAnswer);
-      }}
-    >
-      <QuestionRenderer
-        disabled={isLoading}
-        draft={draft}
-        inputName={inputName}
-        onChange={setDraft}
-        question={question}
-      />
-
-      <div className="opensphinx-actions">
-        <button
-          className="opensphinx-submit"
-          disabled={!isReadyToSubmit}
-          type="submit"
-        >
-          Continue
-        </button>
-      </div>
-    </form>
-  );
-}
-
 function StepFlowQuiz({
   onAnswer,
   onComplete,
@@ -374,7 +270,7 @@ function StepFlowQuiz({
   theme = "default",
   className,
   ...rest
-}: SphinxQuizStepFlowProps) {
+}: SphinxQuizProps) {
   const steps = getStepQueue(rest);
 
   return (
