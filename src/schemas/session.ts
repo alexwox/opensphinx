@@ -12,11 +12,11 @@ export const SessionHistoryItem = z.object({
 
 export type SessionHistoryItem = z.infer<typeof SessionHistoryItem>;
 
+/** Runtime quiz progress: history + optional queued upcoming steps (`pendingSteps` only). */
 export const SessionState = z.object({
   sessionId: z.string(),
   config: QuizConfig,
   history: z.array(SessionHistoryItem),
-  pendingQuestions: z.array(QuestionSpec).default([]),
   pendingSteps: z.array(Step).default([]),
   completedSteps: z.number().int().nonnegative().default(0)
 });
@@ -36,6 +36,7 @@ export const EngineStepResponse = z.discriminatedUnion("type", [
 
 export type EngineStepResponse = z.infer<typeof EngineStepResponse>;
 
+/** @deprecated Prefer {@link EngineStepResponse}. Derived from the same step pipeline as {@link EngineStepResponse}. */
 export const EngineBatchResponse = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("questions"),
@@ -49,6 +50,7 @@ export const EngineBatchResponse = z.discriminatedUnion("type", [
 
 export type EngineBatchResponse = z.infer<typeof EngineBatchResponse>;
 
+/** @deprecated Prefer {@link EngineStepResponse}. Single-question adapter for legacy callers. */
 export const EngineResponse = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("question"),

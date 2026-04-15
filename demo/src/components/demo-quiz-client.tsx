@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 
-import { SphinxQuiz } from "../../../src/react";
+import {
+  SphinxQuiz,
+  type SphinxQuizPrefetchRequest,
+  type SphinxQuizPrefetchResult,
+  type SphinxQuizThemeConfig
+} from "opensphinx/react";
 import type {
   AnswerValue,
   EngineStepResponse,
@@ -10,12 +15,7 @@ import type {
   SessionHistoryItem,
   SessionState,
   Step
-} from "../../../src/schemas";
-import type {
-  SphinxQuizPrefetchRequest,
-  SphinxQuizPrefetchResult
-} from "../../../src/react";
-import type { SphinxQuizThemeConfig } from "../../../src/react";
+} from "opensphinx/schemas";
 
 import { demoQuizConfig } from "../lib/quiz-config";
 
@@ -41,7 +41,6 @@ function buildInitialSession(): SessionState {
     sessionId: crypto.randomUUID(),
     config: demoQuizConfig,
     history: [],
-    pendingQuestions: [],
     pendingSteps: [],
     completedSteps: 0
   };

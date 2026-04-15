@@ -1,5 +1,6 @@
 export {
-  SphinxQuiz
+  SphinxQuiz,
+  SphinxQuizSingle
 } from "./components";
 
 export type {

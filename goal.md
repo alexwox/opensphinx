@@ -65,7 +65,7 @@ import { createQuizEngine } from "opensphinx/engine";
 import {
   QuizConfig,
   SessionState,
-  EngineBatchResponse
+  EngineStepResponse
 } from "opensphinx/schemas";
 ```
 
@@ -402,15 +402,15 @@ Recommended workflow:
 - `[partially done]` Quiz config supports `systemPrompt`, `seedQuestions`, `seedSteps`, `batchSize`, and step limits.
 - `[completed]` First-class step schema exists.
 - `[completed]` Config supports explicit step-level pacing rules like `maxSteps`.
-- `[partially done]` Session state supports answered history, pending queued questions, pending steps, and completed step counts.
-- `[partially done]` Engine batch/complete response contract exists.
-- `[partially done]` Step-oriented response contract exists but is not yet finalized as the sole preferred API.
+- `[completed]` Session state supports answered history, **`pendingSteps` as the only queued-question model**, and completed step counts.
+- `[partially done]` Legacy `EngineBatchResponse` / `EngineResponse` adapters remain for thin compatibility; **`EngineStepResponse` is the preferred contract**.
+- `[completed]` Step-oriented response contract is the primary engine output shape (`generateStep`).
 - `[not done]` Session serialization helpers for app/framework storage.
 - `[not done]` Finalized public contract review for long-term API stability.
 
 ### Engine Core
 
-- `[partially done]` `createQuizEngine()` exists with typed config normalization.
+- `[partially done]` `createQuizEngine()` exists with typed config normalization; **`generateStep()` is the canonical API** (`generateBatch` / `generateNext` are adapters).
 - `[partially done]` Seed-question-first behavior exists.
 - `[partially done]` Seed content can be modeled as explicit multi-step opening flow.
 - `[partially done]` AI-backed batch generation exists.
@@ -435,7 +435,7 @@ Recommended workflow:
 
 ### React UI
 
-- `[partially done]` `SphinxQuiz` renders one question at a time.
+- `[partially done]` **`SphinxQuiz` is step-first** (prefetch + `steps` / `step`); **`SphinxQuizSingle`** covers the minimal one-question path.
 - `[partially done]` All current question schema variants have basic rendering support.
 - `[partially done]` Loading and progress states exist.
 - `[partially done]` Step-aware React flow that consumes prefetched steps directly.
@@ -452,7 +452,7 @@ Recommended workflow:
 - `[completed]` Minimal `demo/` app exists.
 - `[completed]` Example server route wiring engine and UI together.
 - `[completed]` Example quiz config demonstrating intended adaptive behavior.
-- `[partially done]` End-to-end step-prefetch flow shown in a real app.
+- `[completed]` Demo consumes published subpaths (`opensphinx/*`) with `transpilePackages`, not deep `src` imports.
 - `[partially done]` Documentation/examples for Next.js.
 - `[not done]` Documentation/examples for other host environments like Remix or Express.
 

@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createQuizEngine } from "../../../../../src/engine";
-import type { EngineLogEvent } from "../../../../../src/engine";
+import { createQuizEngine, type EngineLogEvent } from "opensphinx/engine";
 import {
   EngineStepResponse,
   ScoreResult,
   SessionState
-} from "../../../../../src/schemas";
+} from "opensphinx/schemas";
 
 import { demoQuizConfig } from "../../../lib/quiz-config";
 

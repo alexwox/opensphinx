@@ -83,7 +83,6 @@ export function buildPrompt(
 
   const knownQuestions = [
     ...normalizedSession.history.map((entry) => entry.question),
-    ...normalizedSession.pendingQuestions,
     ...normalizedSession.pendingSteps.flatMap((step) => step.questions)
   ];
 

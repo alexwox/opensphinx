@@ -93,9 +93,8 @@ export interface SphinxQuizStepFlowProps extends SphinxQuizBaseProps {
   readonly question?: never;
 }
 
-export type SphinxQuizProps =
-  | SphinxQuizSingleQuestionProps
-  | SphinxQuizStepFlowProps;
+/** Step-first quiz UI (default export {@link SphinxQuiz}). */
+export type SphinxQuizProps = SphinxQuizStepFlowProps;
 
 function getInitialDraft(question: QuestionSpec): QuestionDraftValue {
   switch (question.type) {
@@ -186,12 +185,6 @@ function joinClassNames(...values: Array<string | undefined>) {
   return values.filter(Boolean).join(" ");
 }
 
-function hasSingleQuestionMode(
-  props: SphinxQuizProps
-): props is SphinxQuizSingleQuestionProps {
-  return "question" in props && props.question !== undefined;
-}
-
 function getStepQueue(props: SphinxQuizStepFlowProps) {
   if (props.steps && props.steps.length > 0) {
     return props.steps;
@@ -277,7 +270,8 @@ function QuizShell({
   );
 }
 
-function SingleQuestionQuiz({
+/** One question at a time (legacy / minimal). Prefer {@link SphinxQuiz} with `steps`. */
+export function SphinxQuizSingle({
   question,
   onAnswer,
   onComplete,
@@ -670,9 +664,5 @@ function StepQuestionForm({
 }
 
 export function SphinxQuiz(props: SphinxQuizProps) {
-  if (hasSingleQuestionMode(props)) {
-    return <SingleQuestionQuiz {...props} />;
-  }
-
   return <StepFlowQuiz {...props} />;
 }

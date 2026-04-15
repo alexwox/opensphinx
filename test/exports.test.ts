@@ -11,7 +11,7 @@ vi.mock("ai", () => ({
 }));
 
 import { createQuizEngine } from "opensphinx/engine";
-import { SphinxQuiz } from "opensphinx/react";
+import { SphinxQuiz, SphinxQuizSingle } from "opensphinx/react";
 import {
   EngineBatchResponse,
   EngineResponse,
@@ -52,7 +52,7 @@ describe("opensphinx public exports", () => {
 
   it("renders the React quiz surface", () => {
     const html = renderToStaticMarkup(
-      React.createElement(SphinxQuiz, {
+      React.createElement(SphinxQuizSingle, {
         question: QuestionSpec.parse({
           type: "mcq",
           question: "How do you prefer to work?",
@@ -74,7 +74,7 @@ describe("opensphinx public exports", () => {
 
   it("renders a loading state in the React quiz surface", () => {
     const html = renderToStaticMarkup(
-      React.createElement(SphinxQuiz, {
+      React.createElement(SphinxQuizSingle, {
         question: QuestionSpec.parse({
           type: "free_text",
           question: "Tell us more."
@@ -89,7 +89,7 @@ describe("opensphinx public exports", () => {
 
   it("applies custom theme variables to the React quiz surface", () => {
     const html = renderToStaticMarkup(
-      React.createElement(SphinxQuiz, {
+      React.createElement(SphinxQuizSingle, {
         question: QuestionSpec.parse({
           type: "yes_no",
           question: "Do you like themed components?"
@@ -149,7 +149,6 @@ describe("opensphinx public exports", () => {
     });
     expect(config.batchSize).toBe(3);
     expect(config.language).toBe("en");
-    expect(session.pendingQuestions).toEqual([]);
     expect(session.pendingSteps).toEqual([]);
     expect(session.completedSteps).toBe(0);
     expect(session.history).toHaveLength(1);
@@ -300,7 +299,7 @@ describe("opensphinx public exports", () => {
     expect(response.questions[1]?.type).toBe("free_text");
   });
 
-  it("uses pending questions before generating a new batch", async () => {
+  it("uses the first question of pending steps before generating a new batch", async () => {
     const engine = createQuizEngine({
       config: {
         ...baseConfig,
@@ -312,11 +311,15 @@ describe("opensphinx public exports", () => {
       sessionId: "session_pending",
       config: engine.config,
       history: [],
-      pendingQuestions: [
+      pendingSteps: [
         {
-          type: "rating",
-          question: "How satisfied are you?",
-          max: 5
+          questions: [
+            {
+              type: "rating",
+              question: "How satisfied are you?",
+              max: 5
+            }
+          ]
         }
       ]
     });
