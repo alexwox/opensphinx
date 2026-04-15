@@ -75,7 +75,11 @@ function mergeStepIntoHistory(
   }));
 }
 
-export function DemoQuizClient() {
+export function DemoQuizClient({
+  showOpenAiKeyHint = true
+}: {
+  readonly showOpenAiKeyHint?: boolean;
+}) {
   const [session, setSession] = useState<SessionState>(() => buildInitialSession());
   const [initialSteps, setInitialSteps] = useState<readonly Step[]>([]);
   const [isStarting, setIsStarting] = useState(false);
@@ -173,10 +177,12 @@ export function DemoQuizClient() {
             Reset
           </button>
         </div>
-        <p className="demo-hint">
-          Tip: add `OPENAI_API_KEY` to let the demo use a real model. Without it, the
-          engine still demonstrates the step flow using its safe fallback behavior.
-        </p>
+        {showOpenAiKeyHint && (
+          <p className="demo-hint">
+            Tip: add `OPENAI_API_KEY` to let the demo use a real model. Without it, the
+            engine still demonstrates the step flow using its safe fallback behavior.
+          </p>
+        )}
       </section>
 
       {error && (

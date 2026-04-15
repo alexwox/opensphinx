@@ -57,6 +57,7 @@ There is intentionally no root `opensphinx` catch-all export. Consumers import f
 
 ## Dependencies
 
+- **`zod` is pinned to v3** (`3.25.x`) so `generateObject` structured output works with OpenAI: the Vercel AI SDK’s Zod-to-JSON-Schema path is not compatible with Zod v4 (you may see `type: "None"` schema errors with v4).
 - `react` and `react-dom` are modeled as optional peer dependencies because only the `opensphinx/react` entry point should care about them.
 - The engine and schema layers stay separate from React concerns.
 - The package publishes `dist/` only.
