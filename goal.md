@@ -83,9 +83,15 @@ Status: **`[v1]`** = required for bare-minimum; **`[later]`** = tracked in “La
 - `[v1]` Hard limits (`min`/`max` questions and steps) and schema-validated model output
 - `[later]` Rich scoring, AI reports, advanced diagnostics
 
-### React- `[v1]` **`SphinxQuiz`** step-first: `step` / `steps`, optional `onRequestPrefetch`
+### React
+
+- `[v1]` **`SphinxQuiz`** step-first: `step` / `steps`, optional `onRequestPrefetch`
 - `[v1]` Render all question types in the catalog (basic controls)
-- `[later]` ShadCN-quality UI, report panel, heavy animation### Demo- `[v1]` Thin Next.js app: POST session → `generateStep` → return `EngineStepResponse`
+- `[later]` ShadCN-quality UI, report panel, heavy animation
+
+### Demo
+
+- `[v1]` Thin Next.js app: POST session → `generateStep` → return `EngineStepResponse`
 - `[later]` Multi-framework examples
 
 ---
