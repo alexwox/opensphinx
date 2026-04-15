@@ -1,7 +1,4 @@
-export {
-  SphinxQuiz,
-  SphinxQuizSingle
-} from "./sphinx-quiz";
+export { SphinxQuiz } from "./sphinx-quiz";
 
 export type {
   SphinxQuizFlowCompletion,
@@ -9,8 +6,6 @@ export type {
   SphinxQuizPrefetchResult,
   SphinxQuizProgress,
   SphinxQuizProps,
-  SphinxQuizSingleQuestionProps,
-  SphinxQuizStepFlowProps,
   SphinxQuizStepSubmission,
   SphinxQuizThemeConfig,
   SphinxQuizTheme
