@@ -173,7 +173,7 @@ function joinClassNames(...values: Array<string | undefined>) {
   return values.filter(Boolean).join(" ");
 }
 
-function getStepQueue(props: SphinxQuizStepFlowProps) {
+function getStepQueue(props: SphinxQuizProps) {
   if (props.steps && props.steps.length > 0) {
     return props.steps;
   }
