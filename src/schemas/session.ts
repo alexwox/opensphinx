@@ -35,31 +35,3 @@ export const EngineStepResponse = z.discriminatedUnion("type", [
 ]);
 
 export type EngineStepResponse = z.infer<typeof EngineStepResponse>;
-
-/** @deprecated Prefer {@link EngineStepResponse}. Derived from the same step pipeline as {@link EngineStepResponse}. */
-export const EngineBatchResponse = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("questions"),
-    questions: z.array(QuestionSpec).min(1)
-  }),
-  z.object({
-    type: z.literal("complete"),
-    scores: ScoreResult
-  })
-]);
-
-export type EngineBatchResponse = z.infer<typeof EngineBatchResponse>;
-
-/** @deprecated Prefer {@link EngineStepResponse}. Single-question adapter for legacy callers. */
-export const EngineResponse = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("question"),
-    question: QuestionSpec
-  }),
-  z.object({
-    type: z.literal("complete"),
-    scores: ScoreResult
-  })
-]);
-
-export type EngineResponse = z.infer<typeof EngineResponse>;

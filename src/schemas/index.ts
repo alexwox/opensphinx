@@ -18,8 +18,6 @@ export { DimensionScore, ScoreResult } from "./scoring";
 export { Step } from "./step";
 
 export {
-  EngineBatchResponse,
-  EngineResponse,
   EngineStepResponse,
   SessionHistoryItem,
   SessionState
