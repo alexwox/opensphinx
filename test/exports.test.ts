@@ -11,10 +11,8 @@ vi.mock("ai", () => ({
 }));
 
 import { createQuizEngine } from "opensphinx/engine";
-import { SphinxQuiz, SphinxQuizSingle } from "opensphinx/react";
+import { SphinxQuiz } from "opensphinx/react";
 import {
-  EngineBatchResponse,
-  EngineResponse,
   EngineStepResponse,
   QuestionSpec,
   QuizConfig,
@@ -52,13 +50,18 @@ describe("opensphinx public exports", () => {
 
   it("renders the React quiz surface", () => {
     const html = renderToStaticMarkup(
-      React.createElement(SphinxQuizSingle, {
-        question: QuestionSpec.parse({
-          type: "mcq",
-          question: "How do you prefer to work?",
-          options: ["Solo", "Pair", "Team"]
-        }),
-        onAnswer: () => undefined,
+      React.createElement(SphinxQuiz, {
+        steps: [
+          {
+            questions: [
+              QuestionSpec.parse({
+                type: "mcq",
+                question: "How do you prefer to work?",
+                options: ["Solo", "Pair", "Team"]
+              })
+            ]
+          }
+        ],
         progress: {
           current: 1,
           max: 3
@@ -67,20 +70,25 @@ describe("opensphinx public exports", () => {
     );
 
     expect(html).toContain("How do you prefer to work?");
-    expect(html).toContain("Continue");
+    expect(html).toContain("Submit step");
     expect(html).toContain("1 / 3");
     expect(html).toContain("Solo");
   });
 
   it("renders a loading state in the React quiz surface", () => {
     const html = renderToStaticMarkup(
-      React.createElement(SphinxQuizSingle, {
-        question: QuestionSpec.parse({
-          type: "free_text",
-          question: "Tell us more."
-        }),
-        isLoading: true,
-        onAnswer: () => undefined
+      React.createElement(SphinxQuiz, {
+        steps: [
+          {
+            questions: [
+              QuestionSpec.parse({
+                type: "free_text",
+                question: "Tell us more."
+              })
+            ]
+          }
+        ],
+        isLoading: true
       })
     );
 
@@ -89,12 +97,17 @@ describe("opensphinx public exports", () => {
 
   it("applies custom theme variables to the React quiz surface", () => {
     const html = renderToStaticMarkup(
-      React.createElement(SphinxQuizSingle, {
-        question: QuestionSpec.parse({
-          type: "yes_no",
-          question: "Do you like themed components?"
-        }),
-        onAnswer: () => undefined,
+      React.createElement(SphinxQuiz, {
+        steps: [
+          {
+            questions: [
+              QuestionSpec.parse({
+                type: "yes_no",
+                question: "Do you like themed components?"
+              })
+            ]
+          }
+        ],
         theme: {
           accent: "#ff4d6d",
           radius: 24,
@@ -138,9 +151,10 @@ describe("opensphinx public exports", () => {
       ]
     });
 
-    const response = EngineResponse.parse({
-      type: "question",
-      question
+    const step = Step.parse({ questions: [question] });
+    const response = EngineStepResponse.parse({
+      type: "step",
+      step
     });
 
     expect(question).toMatchObject({
@@ -152,7 +166,7 @@ describe("opensphinx public exports", () => {
     expect(session.pendingSteps).toEqual([]);
     expect(session.completedSteps).toBe(0);
     expect(session.history).toHaveLength(1);
-    expect(response.type).toBe("question");
+    expect(response.type).toBe("step");
   });
 
   it("normalizes config defaults in the engine", () => {
@@ -261,7 +275,7 @@ describe("opensphinx public exports", () => {
     expect(response.step.questions[0]?.type).toBe("free_text");
   });
 
-  it("serves seed batches before AI or fallback questions", async () => {
+  it("serves seed questions as a step from generateStep", async () => {
     const engine = createQuizEngine({
       config: {
         ...baseConfig,
@@ -282,54 +296,21 @@ describe("opensphinx public exports", () => {
       }
     });
 
-    const response = await engine.generateBatch({
+    const response = await engine.generateStep({
       sessionId: "session_seed",
       config: engine.config,
       history: []
     });
 
     expect(response).toMatchObject({
-      type: "questions"
+      type: "step"
     });
-    if (response.type !== "questions") {
-      throw new Error("Expected a questions batch.");
+    if (response.type !== "step") {
+      throw new Error("Expected a step.");
     }
-    expect(response.questions).toHaveLength(2);
-    expect(response.questions[0]?.type).toBe("yes_no");
-    expect(response.questions[1]?.type).toBe("free_text");
-  });
-
-  it("uses the first question of pending steps before generating a new batch", async () => {
-    const engine = createQuizEngine({
-      config: {
-        ...baseConfig,
-        batchSize: 2
-      }
-    });
-
-    const response = await engine.generateNext({
-      sessionId: "session_pending",
-      config: engine.config,
-      history: [],
-      pendingSteps: [
-        {
-          questions: [
-            {
-              type: "rating",
-              question: "How satisfied are you?",
-              max: 5
-            }
-          ]
-        }
-      ]
-    });
-
-    expect(response).toMatchObject({
-      type: "question",
-      question: {
-        type: "rating"
-      }
-    });
+    expect(response.step.questions).toHaveLength(2);
+    expect(response.step.questions[0]?.type).toBe("yes_no");
+    expect(response.step.questions[1]?.type).toBe("free_text");
   });
 
   it("uses pending steps before generating a new step", async () => {
@@ -368,7 +349,7 @@ describe("opensphinx public exports", () => {
     expect(response.step.questions[0]?.type).toBe("slider");
   });
 
-  it("falls back to a generic question before minimum completion", async () => {
+  it("falls back to a generic step before minimum completion", async () => {
     const engine = createQuizEngine({
       config: {
         ...baseConfig,
@@ -377,7 +358,7 @@ describe("opensphinx public exports", () => {
       }
     });
 
-    const response = await engine.generateNext({
+    const response = await engine.generateStep({
       sessionId: "session_fallback",
       config: engine.config,
       history: [
@@ -392,14 +373,15 @@ describe("opensphinx public exports", () => {
     });
 
     expect(response).toMatchObject({
-      type: "question",
-      question: {
-        type: "free_text"
-      }
+      type: "step"
     });
+    if (response.type !== "step") {
+      throw new Error("Expected a step.");
+    }
+    expect(response.step.questions[0]?.type).toBe("free_text");
   });
 
-  it("uses the AI model to generate the next batch", async () => {
+  it("uses the AI model to generate the next step", async () => {
     generateObjectMock.mockResolvedValueOnce({
       object: {
         type: "step",
@@ -430,7 +412,7 @@ describe("opensphinx public exports", () => {
       }
     });
 
-    const response = await engine.generateBatch({
+    const response = await engine.generateStep({
       sessionId: "session_ai_question",
       config: engine.config,
       history: [
@@ -446,13 +428,13 @@ describe("opensphinx public exports", () => {
 
     expect(generateObjectMock).toHaveBeenCalledTimes(1);
     expect(response).toMatchObject({
-      type: "questions"
+      type: "step"
     });
-    if (response.type !== "questions") {
-      throw new Error("Expected an AI-generated questions batch.");
+    if (response.type !== "step") {
+      throw new Error("Expected an AI-generated step.");
     }
-    expect(response.questions).toHaveLength(2);
-    expect(response.questions[0]?.type).toBe("rating");
+    expect(response.step.questions).toHaveLength(2);
+    expect(response.step.questions[0]?.type).toBe("rating");
   });
 
   it("filters duplicate AI-generated questions against history", async () => {
@@ -575,7 +557,7 @@ describe("opensphinx public exports", () => {
       }
     });
 
-    const response = await engine.generateBatch({
+    const response = await engine.generateStep({
       sessionId: "session_ai_complete",
       config: engine.config,
       history: [
@@ -624,7 +606,7 @@ describe("opensphinx public exports", () => {
     });
   });
 
-  it("retries once and then falls back to a generated batch when AI generation fails", async () => {
+  it("retries once and then falls back to a generated step when AI generation fails", async () => {
     generateObjectMock
       .mockRejectedValueOnce(new Error("bad object"))
       .mockRejectedValueOnce(new Error("still bad"));
@@ -638,7 +620,7 @@ describe("opensphinx public exports", () => {
       }
     });
 
-    const response = await engine.generateBatch({
+    const response = await engine.generateStep({
       sessionId: "session_ai_retry",
       config: engine.config,
       history: [
@@ -654,13 +636,13 @@ describe("opensphinx public exports", () => {
 
     expect(generateObjectMock).toHaveBeenCalledTimes(2);
     expect(response).toMatchObject({
-      type: "questions"
+      type: "step"
     });
-    if (response.type !== "questions") {
-      throw new Error("Expected a fallback questions batch.");
+    if (response.type !== "step") {
+      throw new Error("Expected a fallback step.");
     }
-    expect(response.questions.length).toBeGreaterThan(0);
-    expect(response.questions[0]?.type).toBe("free_text");
+    expect(response.step.questions.length).toBeGreaterThan(0);
+    expect(response.step.questions[0]?.type).toBe("free_text");
   });
 
   it("completes instead of asking generic fallback questions when AI fails after minimums are met", async () => {
@@ -748,7 +730,7 @@ describe("opensphinx public exports", () => {
       ]
     });
 
-    const next = await engine.generateNext(session);
+    const next = await engine.generateStep(session);
     const scores = await engine.score(session);
     const report = await engine.generateReport(session, scores);
 
@@ -758,20 +740,6 @@ describe("opensphinx public exports", () => {
     expect(scores.dimensions).toHaveLength(1);
     expect(scores.dimensions[0]?.id).toBe("collaboration");
     expect(report).toContain('Report for "Work Style"');
-  });
-
-  it("exposes the batched engine response schema", () => {
-    const batch = EngineBatchResponse.parse({
-      type: "questions",
-      questions: [
-        {
-          type: "yes_no",
-          question: "Do you enjoy dynamic forms?"
-        }
-      ]
-    });
-
-    expect(batch.type).toBe("questions");
   });
 
   it("preserves consumer-facing types", () => {

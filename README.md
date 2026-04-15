@@ -17,8 +17,8 @@ The current focus is package structure only. Product-specific quiz logic is inte
 - Strict TypeScript configuration
 - Vitest smoke tests for public subpath imports
 - Real shared Zod schemas in `opensphinx/schemas` (`SessionState` queues upcoming work via **`pendingSteps` only**)
-- Seed-first, **step-canonical** engine in `opensphinx/engine`: **`generateStep()`** is the main API; `generateBatch` / `generateNext` are thin adapters
-- **Step-first** React UI via `SphinxQuiz` (`steps` / `step` + optional prefetch); use **`SphinxQuizSingle`** for a single static question
+- Seed-first, **step-canonical** engine in `opensphinx/engine`: **`generateStep()`** is the only generation API (v1)
+- **Step-first** React UI via `SphinxQuiz` (`steps` / `step` + optional prefetch)
 
 ## Install
 
@@ -40,7 +40,7 @@ pnpm clean
 ## Public Imports
 
 ```ts
-import { SphinxQuiz, SphinxQuizSingle } from "opensphinx/react";
+import { SphinxQuiz } from "opensphinx/react";
 import { createQuizEngine } from "opensphinx/engine";
 import type { QuestionSpec, QuizConfig, EngineStepResponse } from "opensphinx/schemas";
 ```
