@@ -36,6 +36,33 @@ export interface ModelGenerationDiagnostic {
 
 type ModelGenerationLogger = (diagnostic: ModelGenerationDiagnostic) => void;
 
+function sendDebugLog(payload: {
+  readonly runId: string;
+  readonly hypothesisId: string;
+  readonly location: string;
+  readonly message: string;
+  readonly data: Record<string, unknown>;
+}) {
+  // #region agent log
+  fetch("http://127.0.0.1:7249/ingest/3948c784-51f7-41c9-9ccf-9b068e008817", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": "8522ea"
+    },
+    body: JSON.stringify({
+      sessionId: "8522ea",
+      runId: payload.runId,
+      hypothesisId: payload.hypothesisId,
+      location: payload.location,
+      message: payload.message,
+      data: payload.data,
+      timestamp: Date.now()
+    })
+  }).catch(() => {});
+  // #endregion
+}
+
 function createNextStepWireSchema(batchSize: number) {
   const stepQuestions = z.array(QuestionSpec).min(1).max(batchSize);
 
@@ -123,6 +150,42 @@ function getSchemaDiagnostics(wireSchema: ReturnType<typeof createNextStepWireSc
   return details;
 }
 
+function getSchemaMismatchDiagnostics(
+  wireSchema: ReturnType<typeof createNextStepWireSchema>
+) {
+  const jsonSchema = asSchema(wireSchema).jsonSchema;
+  const schemaRecord = asRecord(jsonSchema);
+  const properties = asRecord(schemaRecord?.properties);
+  const questionsSchema = asRecord(properties?.questions);
+  const questionsAnyOf = asArray(questionsSchema?.anyOf);
+  const arrayBranch = questionsAnyOf
+    .map((branch) => asRecord(branch))
+    .find((branch) => branch?.type === "array");
+  const itemsSchema = asRecord(arrayBranch?.items);
+  const itemVariants = asArray(itemsSchema?.anyOf)
+    .map((variant) => asRecord(variant))
+    .filter((variant): variant is Record<string, unknown> => variant !== null);
+
+  return itemVariants.map((variant) => {
+    const variantProperties = asRecord(variant.properties) ?? {};
+    const required = asArray(variant.required).map((item) => String(item));
+    const propertyKeys = Object.keys(variantProperties);
+    const missingRequired = propertyKeys.filter((key) => !required.includes(key));
+    const variantType = String(
+      asRecord(variantProperties.type)?.const ??
+        asRecord(variantProperties.type)?.enum ??
+        "unknown"
+    );
+
+    return {
+      variantType,
+      propertyKeys,
+      required,
+      missingRequired
+    };
+  });
+}
+
 function wireToDecision(wire: ModelNextStepWire): ModelNextStepDecision {
   if (wire.type === "complete") {
     return { type: "complete" };
@@ -147,6 +210,8 @@ export async function generateStepWithModel(
   const prompt = buildPrompt(sessionState, sessionState.config.batchSize);
   const wireSchema = createNextStepWireSchema(sessionState.config.batchSize);
   const schemaDiagnostics = getSchemaDiagnostics(wireSchema);
+  const mismatchDiagnostics = getSchemaMismatchDiagnostics(wireSchema);
+  const runId = sessionState.sessionId;
 
   logger?.({
     type: "schema-prepared",
@@ -156,6 +221,20 @@ export async function generateStepWithModel(
       `prompt.length=${prompt.length}`
     ]
   });
+
+  // #region agent log
+  sendDebugLog({
+    runId,
+    hypothesisId: "H1-H4",
+    location: "src/engine/model-step.ts:156",
+    message: "Prepared wire schema and computed required/property mismatches.",
+    data: {
+      batchSize: sessionState.config.batchSize,
+      rootDiagnostics: schemaDiagnostics,
+      mismatches: mismatchDiagnostics
+    }
+  });
+  // #endregion
 
   const { object } = await generateObject({
     model,
@@ -173,6 +252,18 @@ export async function generateStepWithModel(
     details: [`wire.output=${JSON.stringify(object)}`]
   });
 
+  // #region agent log
+  sendDebugLog({
+    runId,
+    hypothesisId: "H2",
+    location: "src/engine/model-step.ts:181",
+    message: "Model returned a structured wire object.",
+    data: {
+      object
+    }
+  });
+  // #endregion
+
   return wireToDecision(wireSchema.parse(object));
 }
 
@@ -182,18 +273,32 @@ export async function generateStepWithRetry(
   logger?: ModelGenerationLogger
 ): Promise<ModelNextStepDecision | ModelStepWithFallback> {
   let lastError: unknown;
+  const runId = sessionState.sessionId;
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
       return await generateStepWithModel(model, sessionState, logger);
     } catch (error) {
       lastError = error;
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger?.({
         type: "attempt-failed",
         message: "Model structured generation attempt failed.",
         details: [`attempt=${attempt + 1}`],
         error
       });
+      // #region agent log
+      sendDebugLog({
+        runId,
+        hypothesisId: "H1-H5",
+        location: "src/engine/model-step.ts:206",
+        message: "Structured generation attempt failed.",
+        data: {
+          attempt: attempt + 1,
+          errorMessage
+        }
+      });
+      // #endregion
     }
   }
 
