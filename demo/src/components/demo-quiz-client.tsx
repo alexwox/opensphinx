@@ -53,13 +53,26 @@ async function requestNextStep(session: SessionState) {
   return payload;
 }
 
-function mergeStepIntoHistory(
-  submission: PrefetchRequest["submission"]
+function mergeSubmissionsIntoHistory(
+  submissions: readonly PrefetchRequest["submission"][]
 ): SessionHistoryItem[] {
-  return submission.step.questions.map((question, index) => ({
-    question,
-    answer: submission.answers[index] as AnswerValue
-  }));
+  return submissions.flatMap((submission) =>
+    submission.step.questions.map((question, index) => ({
+      question,
+      answer: submission.answers[index] as AnswerValue
+    }))
+  );
+}
+
+function buildSessionFromSubmissions(
+  currentSession: SessionState,
+  submissions: readonly PrefetchRequest["submission"][]
+): SessionState {
+  return {
+    ...currentSession,
+    history: mergeSubmissionsIntoHistory(submissions),
+    completedSteps: submissions.length
+  };
 }
 
 function SphinxWordmark() {
@@ -159,11 +172,7 @@ export function DemoQuizClient({
   const handlePrefetch = async (
     request: PrefetchRequest
   ): Promise<PrefetchResult> => {
-    const nextSession: SessionState = {
-      ...session,
-      history: [...session.history, ...mergeStepIntoHistory(request.submission)],
-      completedSteps: session.completedSteps + 1
-    };
+    const nextSession = buildSessionFromSubmissions(session, request.submissions);
 
     setSession(nextSession);
 
@@ -239,6 +248,7 @@ export function DemoQuizClient({
         {isReady && initialSteps.length > 0 && !isComplete && (
           <section className="demo-panel">
             <SphinxQuiz
+              allowBack
               onRequestPrefetch={handlePrefetch}
               prefetchWhenRemainingSteps={0}
               steps={initialSteps}

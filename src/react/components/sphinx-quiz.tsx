@@ -59,6 +59,7 @@ interface SphinxQuizBaseProps {
 export interface SphinxQuizProps extends SphinxQuizBaseProps {
   readonly step?: Step;
   readonly steps?: readonly Step[];
+  readonly allowBack?: boolean;
   readonly onAnswer?: (answer: AnswerValue) => void;
   readonly onStepSubmit?: (submission: SphinxQuizStepSubmission) => void;
   readonly onStepsComplete?: (completion: SphinxQuizFlowCompletion) => void;
@@ -93,6 +94,25 @@ function getInitialDraft(question: QuestionSpec): QuestionDraftValue {
       return exhaustiveCheck;
     }
   }
+}
+
+function cloneDraftValue(draft: QuestionDraftValue): QuestionDraftValue {
+  return Array.isArray(draft) ? [...draft] : draft;
+}
+
+function cloneDrafts(drafts: readonly QuestionDraftValue[]) {
+  return drafts.map((draft) => cloneDraftValue(draft));
+}
+
+function getInitialDrafts(
+  step: Step,
+  initialDrafts?: readonly QuestionDraftValue[]
+) {
+  if (!initialDrafts || initialDrafts.length !== step.questions.length) {
+    return step.questions.map((question) => getInitialDraft(question));
+  }
+
+  return cloneDrafts(initialDrafts);
 }
 
 function normalizeAnswer(
@@ -213,6 +233,7 @@ function QuizShell({
 }
 
 function StepFlowQuiz({
+  allowBack = false,
   onAnswer,
   onComplete,
   onStepSubmit,
@@ -231,6 +252,7 @@ function StepFlowQuiz({
       key={getStepsKey(steps)}
       className={className}
       isLoading={isLoading}
+      allowBack={allowBack}
       onAnswer={onAnswer}
       onComplete={onComplete}
       onRequestPrefetch={onRequestPrefetch}
@@ -245,6 +267,7 @@ function StepFlowQuiz({
 
 function StepFlowSession({
   steps,
+  allowBack,
   onAnswer,
   onComplete,
   onRequestPrefetch,
@@ -256,6 +279,7 @@ function StepFlowSession({
   className
 }: {
   readonly steps: readonly Step[];
+  readonly allowBack: boolean;
   readonly onAnswer?: (answer: AnswerValue) => void;
   readonly onComplete?: (scores: ScoreResult) => void;
   readonly onRequestPrefetch?:
@@ -274,12 +298,23 @@ function StepFlowSession({
   const [queuedSteps, setQueuedSteps] = useState<readonly Step[]>(steps);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [submissions, setSubmissions] = useState<SphinxQuizStepSubmission[]>([]);
+  const [draftCache, setDraftCache] = useState<Map<number, QuestionDraftValue[]>>(
+    () => new Map()
+  );
   const [isPrefetching, setIsPrefetching] = useState(false);
   const [isAwaitingReplacementStep, setIsAwaitingReplacementStep] = useState(false);
 
   const activeStep = queuedSteps[activeStepIndex];
   const allQueuedStepsComplete =
     queuedSteps.length > 0 && activeStepIndex >= queuedSteps.length;
+
+  function cacheDrafts(stepIndex: number, drafts: readonly QuestionDraftValue[]) {
+    setDraftCache((current) => {
+      const next = new Map(current);
+      next.set(stepIndex, cloneDrafts(drafts));
+      return next;
+    });
+  }
 
   if (!activeStep) {
     return (
@@ -321,9 +356,17 @@ function StepFlowSession({
       ) : (
         <StepQuestionsForm
           key={`${activeStepIndex}:${getStepKey(activeStep)}`}
+          canGoBack={allowBack && activeStepIndex > 0}
+          initialDrafts={draftCache.get(activeStepIndex)}
           inputName={inputName}
           isLoading={isLoading || isAwaitingReplacementStep}
-          onSubmitStep={(answers) => {
+          onBack={(drafts) => {
+            cacheDrafts(activeStepIndex, drafts);
+            setActiveStepIndex((currentIndex) => currentIndex - 1);
+          }}
+          onSubmitStep={({ answers, drafts }) => {
+            cacheDrafts(activeStepIndex, drafts);
+
             const submission: SphinxQuizStepSubmission = {
               step: activeStep,
               answers,
@@ -332,13 +375,28 @@ function StepFlowSession({
               remainingSteps: Math.max(0, queuedSteps.length - activeStepIndex - 1)
             };
 
+            const isPreviouslySubmittedStep = activeStepIndex < submissions.length;
+            const isBeforeSubmittedFrontier =
+              activeStepIndex < submissions.length - 1;
+            const nextSubmissions = isPreviouslySubmittedStep
+              ? submissions.map((currentSubmission, submissionIndex) =>
+                  submissionIndex === activeStepIndex
+                    ? submission
+                    : currentSubmission
+                )
+              : [...submissions, submission];
+
+            setSubmissions(nextSubmissions);
+
+            if (isBeforeSubmittedFrontier) {
+              setActiveStepIndex((currentIndex) => currentIndex + 1);
+              return;
+            }
+
             answers.forEach((answer) => {
               onAnswer?.(answer);
             });
             onStepSubmit?.(submission);
-
-            const nextSubmissions = [...submissions, submission];
-            setSubmissions(nextSubmissions);
 
             const remainingSteps = Math.max(
               0,
@@ -418,22 +476,31 @@ function StepFlowSession({
 }
 
 function StepQuestionsForm({
+  canGoBack,
+  initialDrafts,
   step,
   inputName,
   submitLabel,
   isLoading,
+  onBack,
   showQuestionHeadings,
   onSubmitStep
 }: {
+  readonly canGoBack: boolean;
+  readonly initialDrafts?: readonly QuestionDraftValue[];
   readonly step: Step;
   readonly inputName: string;
   readonly submitLabel: string;
   readonly isLoading: boolean;
+  readonly onBack: (drafts: readonly QuestionDraftValue[]) => void;
   readonly showQuestionHeadings: boolean;
-  readonly onSubmitStep: (answers: AnswerValue[]) => void;
+  readonly onSubmitStep: (payload: {
+    readonly answers: AnswerValue[];
+    readonly drafts: readonly QuestionDraftValue[];
+  }) => void;
 }) {
   const [drafts, setDrafts] = useState<QuestionDraftValue[]>(() =>
-    step.questions.map((question) => getInitialDraft(question))
+    getInitialDrafts(step, initialDrafts)
   );
 
   const normalizedAnswers = useMemo(
@@ -456,7 +523,10 @@ function StepQuestionsForm({
           return;
         }
 
-        onSubmitStep(normalizedAnswers);
+        onSubmitStep({
+          answers: normalizedAnswers,
+          drafts
+        });
       }}
     >
       <div className="opensphinx-step-questions">
@@ -489,6 +559,16 @@ function StepQuestionsForm({
       </div>
 
       <div className="opensphinx-actions">
+        {canGoBack && (
+          <button
+            className="opensphinx-back"
+            disabled={isLoading}
+            onClick={() => onBack(drafts)}
+            type="button"
+          >
+            Back
+          </button>
+        )}
         <button
           className="opensphinx-submit"
           disabled={!isReadyToSubmit}
