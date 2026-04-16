@@ -24,20 +24,21 @@ export default function HomePage() {
         <div className="hero__grid site-container">
           <div className="hero__content">
             <span className="eyebrow">Open-source AI quiz engine</span>
-            <h1>
-              Adaptive, server-driven question flows without building the engine
-              yourself.
-            </h1>
+            <h1>AI-driven question flows</h1>
             <p className="hero__lede">
-              OpenSphinx gives you typed schemas, a generation engine, and a React
-              renderer for quizzes that adapt step by step. It is built for
-              developers who want a working package, not a vague AI demo.
+              OpenSphinx gives you typed schemas, a generation engine, and a
+              React renderer for quizzes that adapt step by step.
+              <br />
+              Make your quiz-funnel smarter.
             </p>
             <div className="hero__actions">
               <Link className="button button--primary" href="/demo">
                 Try demo
               </Link>
-              <Link className="button button--secondary" href="/docs/quickstart">
+              <Link
+                className="button button--secondary"
+                href="/docs/quickstart"
+              >
                 Read quickstart
               </Link>
               <a
@@ -98,8 +99,8 @@ export default function HomePage() {
               <span>03</span>
               <h3>Render and loop</h3>
               <p>
-                Pass the returned <code>Step</code> into <code>SphinxQuiz</code>,
-                append answers to session state, and repeat until complete.
+                Pass the returned <code>Step</code> into <code>SphinxQuiz</code>
+                , append answers to session state, and repeat until complete.
               </p>
             </article>
           </div>
@@ -114,20 +115,24 @@ export default function HomePage() {
               <h2>The reference app is embedded on the landing page too.</h2>
             </div>
             <p className="example-demo__lede">
-              This is the same AI readiness audit example that powers the dedicated
-              demo route. It shows seeded opening steps, adaptive follow-up, and the
-              server-driven step loop in a package-shaped Next.js app.
+              This is the same AI readiness audit example that powers the
+              dedicated demo route. It shows seeded opening steps, adaptive
+              follow-up, and the server-driven step loop in a package-shaped
+              Next.js app.
             </p>
             <div className="example-demo__notes">
               <p>
-                Use it as the quickest way to understand the product surface and the
-                runtime feel before reading the docs.
+                Use it as the quickest way to understand the product surface and
+                the runtime feel before reading the docs.
               </p>
               <div className="example-demo__actions">
                 <Link className="button button--primary" href="/demo">
                   Open full demo route
                 </Link>
-                <Link className="button button--secondary" href="/docs/examples">
+                <Link
+                  className="button button--secondary"
+                  href="/docs/examples"
+                >
                   Read examples
                 </Link>
               </div>
@@ -154,7 +159,9 @@ export default function HomePage() {
           <div>
             <div className="section-heading">
               <span className="eyebrow">Quickstart</span>
-              <h2>Install the package, wire a model, render the returned step.</h2>
+              <h2>
+                Install the package, wire a model, render the returned step.
+              </h2>
             </div>
             <div className="code-block">
               <div className="code-block__label">Install</div>
@@ -181,20 +188,20 @@ export default function HomePage() {
                   label: "opensphinx/engine",
                   value: "engine",
                   content:
-                    "Server-side generation. Build the engine with your model and call generateStep(session)."
+                    "Server-side generation. Build the engine with your model and call generateStep(session).",
                 },
                 {
                   label: "opensphinx/react",
                   value: "react",
                   content:
-                    "Render the current step, collect answers, and prefetch upcoming steps in the background."
+                    "Render the current step, collect answers, and prefetch upcoming steps in the background.",
                 },
                 {
                   label: "opensphinx/schemas",
                   value: "schemas",
                   content:
-                    "Shared runtime contracts for QuizConfig, SessionState, Step, answers, and scoring metadata."
-                }
+                    "Shared runtime contracts for QuizConfig, SessionState, Step, answers, and scoring metadata.",
+                },
               ]}
             />
           </div>
@@ -205,7 +212,9 @@ export default function HomePage() {
         <div className="site-container">
           <div className="section-heading">
             <span className="eyebrow">Designed for</span>
-            <h2>Question flows that need structure, not chatbot improvisation.</h2>
+            <h2>
+              Question flows that need structure, not chatbot improvisation.
+            </h2>
           </div>
           <FeatureGrid>
             <FeatureCard
