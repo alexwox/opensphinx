@@ -71,7 +71,7 @@ describe("SphinxQuiz step flow", () => {
 
     fireEvent.click(screen.getByLabelText("Solo"));
     fireEvent.click(screen.getByRole("button", { name: "Yes" }));
-    fireEvent.click(screen.getByRole("button", { name: "Next step" }));
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
 
     expect(handleAnswer).toHaveBeenCalledTimes(2);
     expect(handleStepSubmit).toHaveBeenCalledTimes(1);
@@ -90,7 +90,7 @@ describe("SphinxQuiz step flow", () => {
         value: "Clear expectations."
       }
     });
-    fireEvent.click(screen.getByRole("button", { name: "Submit step" }));
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
 
     expect(handleStepSubmit).toHaveBeenCalledTimes(2);
     expect(handleStepsComplete).toHaveBeenCalledTimes(1);
@@ -124,7 +124,7 @@ describe("SphinxQuiz step flow", () => {
 
     expect(screen.getByText("Step 1")).toBeTruthy();
     expect(screen.getByText("How confident are you in your process?")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Submit step" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Next" })).toBeTruthy();
   });
 
   it("requests and appends more steps when the queue gets low", async () => {
@@ -158,7 +158,7 @@ describe("SphinxQuiz step flow", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Yes" }));
-    fireEvent.click(screen.getByRole("button", { name: "Submit step" }));
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
 
     await waitFor(() => {
       expect(handlePrefetch).toHaveBeenCalledTimes(1);

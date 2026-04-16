@@ -304,7 +304,7 @@ function StepFlowSession({
   }
 
   const isLastStepInQueue = activeStepIndex === queuedSteps.length - 1;
-  const submitLabel = isLastStepInQueue ? "Submit step" : "Next step";
+  const submitLabel = "Next";
 
   return (
     <QuizShell

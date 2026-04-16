@@ -524,7 +524,7 @@ button {
 
 .opensphinx-actions {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
   padding-top: 4px;
 }
 
