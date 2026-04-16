@@ -97,6 +97,10 @@ describe("opensphinx public exports", () => {
                 type: "mcq",
                 question: "How do you prefer to work?",
                 options: ["Solo", "Pair", "Team"]
+              }),
+              QuestionSpec.parse({
+                type: "yes_no",
+                question: "Do you enjoy pair programming?"
               })
             ]
           }
@@ -109,6 +113,7 @@ describe("opensphinx public exports", () => {
     );
 
     expect(html).toContain("How do you prefer to work?");
+    expect(html).toContain("Do you enjoy pair programming?");
     expect(html).toContain("Submit step");
     expect(html).toContain("1 / 3");
     expect(html).toContain("Solo");

@@ -82,6 +82,28 @@ button {
   gap: 1rem;
 }
 
+.opensphinx-step-questions {
+  display: grid;
+  gap: 1rem;
+}
+
+.opensphinx-step-question {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.opensphinx-step-question__header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.opensphinx-step-question__title {
+  margin: 0;
+  color: var(--opensphinx-text);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
 .opensphinx-options {
   display: grid;
   gap: 0.75rem;

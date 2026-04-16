@@ -171,24 +171,13 @@ function getStepQueue(props: SphinxQuizProps) {
   return [];
 }
 
-function getQuestionOffset(steps: readonly Step[], stepIndex: number) {
-  return steps
-    .slice(0, stepIndex)
-    .reduce((total, step) => total + step.questions.length, 0);
-}
-
 function getAutoProgress(
   steps: readonly Step[],
-  currentStepIndex: number,
-  currentQuestionIndex: number
+  currentStepIndex: number
 ): SphinxQuizProgress {
-  const max = steps.reduce((total, step) => total + step.questions.length, 0);
-  const current =
-    getQuestionOffset(steps, currentStepIndex) + currentQuestionIndex + 1;
-
   return {
-    current,
-    max
+    current: Math.min(currentStepIndex + 1, steps.length),
+    max: steps.length
   };
 }
 
@@ -196,8 +185,24 @@ function getQuestionKey(question: QuestionSpec) {
   return JSON.stringify(question);
 }
 
+function getStepKey(step: Step) {
+  return JSON.stringify(step);
+}
+
 function getStepsKey(steps: readonly Step[]) {
   return JSON.stringify(steps);
+}
+
+function getStepHeading(step: Step) {
+  if (step.questions.length === 1) {
+    return step.questions[0]?.question ?? "Answer the question below.";
+  }
+
+  return "Answer the questions below.";
+}
+
+function isAnswerValue(answer: AnswerValue | null): answer is AnswerValue {
+  return answer !== null;
 }
 
 function QuizShell({
@@ -278,23 +283,18 @@ function StepFlowSession({
   const inputName = useId();
   const [queuedSteps, setQueuedSteps] = useState<readonly Step[]>(steps);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
-  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
-  const [currentAnswers, setCurrentAnswers] = useState<AnswerValue[]>([]);
   const [submissions, setSubmissions] = useState<SphinxQuizStepSubmission[]>([]);
   const [isPrefetching, setIsPrefetching] = useState(false);
   const [isAwaitingReplacementStep, setIsAwaitingReplacementStep] = useState(false);
 
   const activeStep = queuedSteps[activeStepIndex];
-  const activeQuestion = activeStep?.questions[activeQuestionIndex];
   const resolvedProgress =
     progress ??
-    (activeQuestion
-      ? getAutoProgress(queuedSteps, activeStepIndex, activeQuestionIndex)
-      : undefined);
+    (activeStep ? getAutoProgress(queuedSteps, activeStepIndex) : undefined);
   const allQueuedStepsComplete =
     queuedSteps.length > 0 && activeStepIndex >= queuedSteps.length;
 
-  if (!activeQuestion) {
+  if (!activeStep) {
     return (
       <QuizShell
         className={className}
@@ -316,13 +316,8 @@ function StepFlowSession({
     );
   }
 
-  const isLastQuestionInStep = activeQuestionIndex === activeStep.questions.length - 1;
   const isLastStepInQueue = activeStepIndex === queuedSteps.length - 1;
-  const submitLabel = isLastQuestionInStep
-    ? isLastStepInQueue
-      ? "Submit step"
-      : "Next step"
-    : "Next question";
+  const submitLabel = isLastStepInQueue ? "Submit step" : "Next step";
 
   return (
     <QuizShell
@@ -333,32 +328,17 @@ function StepFlowSession({
         <p className="opensphinx-question-type">
           Step {Math.min(activeStepIndex + 1, queuedSteps.length)} of {queuedSteps.length}
         </p>
-        <h2 className="opensphinx-question">{activeQuestion.question}</h2>
+        <h2 className="opensphinx-question">{getStepHeading(activeStep)}</h2>
       </header>
 
       {isLoading ? (
         <LoadingSkeleton />
       ) : (
-        <StepQuestionForm
-          key={`${activeStepIndex}:${activeQuestionIndex}:${getQuestionKey(activeQuestion)}`}
+        <StepQuestionsForm
+          key={`${activeStepIndex}:${getStepKey(activeStep)}`}
           inputName={inputName}
           isLoading={isLoading || isAwaitingReplacementStep}
-          onSubmitAnswer={(normalizedAnswer) => {
-            onAnswer?.(normalizedAnswer);
-
-            if (!isLastQuestionInStep) {
-              setCurrentAnswers((previous) => {
-                const next = [...previous];
-                next[activeQuestionIndex] = normalizedAnswer;
-                return next;
-              });
-              setActiveQuestionIndex((currentIndex) => currentIndex + 1);
-              return;
-            }
-
-            const answers = [...currentAnswers];
-            answers[activeQuestionIndex] = normalizedAnswer;
-
+          onSubmitStep={(answers) => {
             const submission: SphinxQuizStepSubmission = {
               step: activeStep,
               answers,
@@ -367,6 +347,9 @@ function StepFlowSession({
               remainingSteps: Math.max(0, queuedSteps.length - activeStepIndex - 1)
             };
 
+            answers.forEach((answer) => {
+              onAnswer?.(answer);
+            });
             onStepSubmit?.(submission);
 
             const nextSubmissions = [...submissions, submission];
@@ -403,8 +386,6 @@ function StepFlowSession({
 
                     if (isLastStepInQueue) {
                       setActiveStepIndex(nextVisibleStepIndex);
-                      setActiveQuestionIndex(0);
-                      setCurrentAnswers([]);
                       setIsAwaitingReplacementStep(false);
                     }
 
@@ -433,8 +414,6 @@ function StepFlowSession({
                   submissions: nextSubmissions
                 });
                 setActiveStepIndex(queuedSteps.length);
-                setActiveQuestionIndex(0);
-                setCurrentAnswers([]);
                 return;
               }
 
@@ -443,10 +422,9 @@ function StepFlowSession({
             }
 
             setActiveStepIndex((currentIndex) => currentIndex + 1);
-            setActiveQuestionIndex(0);
-            setCurrentAnswers([]);
           }}
-          question={activeQuestion}
+          showQuestionHeadings={activeStep.questions.length > 1}
+          step={activeStep}
           submitLabel={submitLabel}
         />
       )}
@@ -454,29 +432,34 @@ function StepFlowSession({
   );
 }
 
-function StepQuestionForm({
-  question,
+function StepQuestionsForm({
+  step,
   inputName,
   submitLabel,
   isLoading,
-  onSubmitAnswer
+  showQuestionHeadings,
+  onSubmitStep
 }: {
-  readonly question: QuestionSpec;
+  readonly step: Step;
   readonly inputName: string;
   readonly submitLabel: string;
   readonly isLoading: boolean;
-  readonly onSubmitAnswer: (answer: AnswerValue) => void;
+  readonly showQuestionHeadings: boolean;
+  readonly onSubmitStep: (answers: AnswerValue[]) => void;
 }) {
-  const [draft, setDraft] = useState<QuestionDraftValue>(() =>
-    getInitialDraft(question)
+  const [drafts, setDrafts] = useState<QuestionDraftValue[]>(() =>
+    step.questions.map((question) => getInitialDraft(question))
   );
 
-  const normalizedAnswer = useMemo(
-    () => normalizeAnswer(question, draft),
-    [draft, question]
+  const normalizedAnswers = useMemo(
+    () =>
+      step.questions.map((question, questionIndex) =>
+        normalizeAnswer(question, drafts[questionIndex])
+      ),
+    [drafts, step]
   );
 
-  const isReadyToSubmit = normalizedAnswer !== null && !isLoading;
+  const isReadyToSubmit = normalizedAnswers.every(isAnswerValue) && !isLoading;
 
   return (
     <form
@@ -484,20 +467,41 @@ function StepQuestionForm({
       onSubmit={(event) => {
         event.preventDefault();
 
-        if (normalizedAnswer === null) {
+        if (!normalizedAnswers.every(isAnswerValue)) {
           return;
         }
 
-        onSubmitAnswer(normalizedAnswer);
+        onSubmitStep(normalizedAnswers);
       }}
     >
-      <QuestionRenderer
-        disabled={isLoading}
-        draft={draft}
-        inputName={inputName}
-        onChange={setDraft}
-        question={question}
-      />
+      <div className="opensphinx-step-questions">
+        {step.questions.map((question, questionIndex) => (
+          <section
+            className="opensphinx-step-question"
+            key={`${questionIndex}:${getQuestionKey(question)}`}
+          >
+            {showQuestionHeadings && (
+              <div className="opensphinx-step-question__header">
+                <p className="opensphinx-question-type">Question {questionIndex + 1}</p>
+                <h3 className="opensphinx-step-question__title">{question.question}</h3>
+              </div>
+            )}
+            <QuestionRenderer
+              disabled={isLoading}
+              draft={drafts[questionIndex]}
+              inputName={`${inputName}:${questionIndex}`}
+              onChange={(nextDraft) => {
+                setDrafts((current) => {
+                  const next = [...current];
+                  next[questionIndex] = nextDraft;
+                  return next;
+                });
+              }}
+              question={question}
+            />
+          </section>
+        ))}
+      </div>
 
       <div className="opensphinx-actions">
         <button

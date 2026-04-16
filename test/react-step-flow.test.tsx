@@ -65,14 +65,11 @@ describe("SphinxQuiz step flow", () => {
     );
 
     expect(screen.getByText("How do you prefer to work?")).toBeTruthy();
+    expect(screen.getByText("Do you enjoy pair programming?")).toBeTruthy();
     expect(screen.getByText("Step 1 of 2")).toBeTruthy();
-    expect(screen.getByText("1 / 3")).toBeTruthy();
+    expect(screen.getByText("1 / 2")).toBeTruthy();
 
     fireEvent.click(screen.getByLabelText("Solo"));
-    fireEvent.click(screen.getByRole("button", { name: "Next question" }));
-
-    expect(screen.getByText("Do you enjoy pair programming?")).toBeTruthy();
-
     fireEvent.click(screen.getByRole("button", { name: "Yes" }));
     fireEvent.click(screen.getByRole("button", { name: "Next step" }));
 
@@ -174,6 +171,7 @@ describe("SphinxQuiz step flow", () => {
       screen.getByText("Do you have a structured onboarding process?")
     ).toBeTruthy();
     expect(screen.getByText("Step 1 of 1")).toBeTruthy();
+    expect(screen.getByText("1 / 1")).toBeTruthy();
 
     deferred.resolve({
       type: "steps",
@@ -196,5 +194,6 @@ describe("SphinxQuiz step flow", () => {
       ).toBeTruthy();
     });
     expect(screen.getByText("Step 2 of 2")).toBeTruthy();
+    expect(screen.getByText("2 / 2")).toBeTruthy();
   });
 });
