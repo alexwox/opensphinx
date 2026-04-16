@@ -1,0 +1,99 @@
+{
+  "name": "opensphinx",
+  "version": "0.0.1-alpha",
+  "description": "The open-source AI quiz engine that asks smarter questions.",
+  "license": "MIT",
+  "homepage": "https://github.com/alexwox/opensphinx#readme",
+  "bugs": {
+    "url": "https://github.com/alexwox/opensphinx/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexwox/opensphinx.git"
+  },
+  "keywords": [
+    "ai",
+    "adaptive",
+    "forms",
+    "quiz",
+    "react",
+    "survey",
+    "vercel-ai-sdk",
+    "zod"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=18.18"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "typesVersions": {
+    "*": {
+      "engine": [
+        "dist/engine/index.d.ts"
+      ],
+      "react": [
+        "dist/react/index.d.ts"
+      ],
+      "schemas": [
+        "dist/schemas/index.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js",
+      "default": "./dist/react/index.js"
+    },
+    "./engine": {
+      "types": "./dist/engine/index.d.ts",
+      "import": "./dist/engine/index.js",
+      "default": "./dist/engine/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "import": "./dist/schemas/index.js",
+      "default": "./dist/schemas/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rimraf dist coverage"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "happy-dom": "^20.9.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "rimraf": "^6.1.3",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.4"
+  },
+  "dependencies": {
+    "ai": "^6.0.159",
+    "zod": "3.25.76"
+  }
+}

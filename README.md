@@ -407,7 +407,7 @@ pnpm test
 Run the demo app:
 
 ```bash
-pnpm --dir demo dev
+pnpm dev
 ```
 
-To let the demo use a real model, add `OPENAI_API_KEY` in a place the Next.js app can read, such as `demo/.env.local`. Without it, the demo still exercises the seed-first step flow using fallback behavior.
+To let the demo use a real model, add `OPENAI_API_KEY` in a place the Next.js app can read, such as `apps/demo/.env.local`. Without it, the demo still exercises the seed-first step flow using fallback behavior.

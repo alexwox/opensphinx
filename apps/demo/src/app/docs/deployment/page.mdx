@@ -5,12 +5,12 @@ export const metadata = {
 
 # Deployment
 
-The current project layout is a workspace with the public website inside `demo/`.
+The current project layout is a workspace with the public website inside `apps/demo/`.
 
 ## Vercel setup
 
 - Import the repo into Vercel
-- Set the project Root Directory to `demo`
+- Set the project Root Directory to `apps/demo`
 - Add `OPENAI_API_KEY` if you want real model-backed generation in production
 
 ## Runtime model
@@ -24,5 +24,5 @@ The current project layout is a workspace with the public website inside `demo/`
 `OPENAI_API_KEY` is optional. Without it, the site still demonstrates the engine flow using fallback behavior.
 
 <Callout title="Monorepo note">
-  Keep Vercel pointed at the `demo` app, not the package root, when configuring build and runtime settings.
+  Keep Vercel pointed at the `apps/demo` app, not the package root, when configuring build and runtime settings.
 </Callout>

@@ -1,4 +1,4 @@
-import type { QuizConfig } from "../../../src/schemas";
+import type { QuizConfig } from "opensphinx/schemas";
 
 export const demoQuizConfig: QuizConfig = {
   id: "ai-readiness-audit",
