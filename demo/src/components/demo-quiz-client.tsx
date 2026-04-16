@@ -62,6 +62,56 @@ function mergeStepIntoHistory(
   }));
 }
 
+function SphinxWordmark() {
+  return (
+    <div className="demo-wordmark">
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          d="M12 2L4 7v10l8 5 8-5V7l-8-5z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M12 12l8-5M12 12v10M12 12L4 7"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+      </svg>
+      OpenSphinx
+    </div>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        d="M5 13l4 4L19 7"
+        stroke="#22c55e"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function DemoQuizClient({
   showOpenAiKeyHint = true
 }: {
@@ -143,16 +193,16 @@ export function DemoQuizClient({
 
   return (
     <main className="demo-shell">
-      <section className="demo-header">
-        <p className="demo-kicker">OpenSphinx Demo</p>
+      <header className="demo-header">
+        <SphinxWordmark />
         <h1>AI Readiness Audit</h1>
         <p className="demo-copy">
-          This demo shows seed-first steps, adaptive follow-up, and step prefetching
-          using the local `opensphinx` package.
+          Adaptive questions, intelligent follow-up, real-time step
+          prefetching — powered by the OpenSphinx engine.
         </p>
         <div className="demo-actions">
           <button disabled={isStarting} onClick={startDemo} type="button">
-            {isStarting ? "Starting..." : "Start demo"}
+            {isStarting ? "Starting\u2026" : "Start demo"}
           </button>
           <button onClick={resetDemo} type="button">
             Reset
@@ -160,35 +210,42 @@ export function DemoQuizClient({
         </div>
         {showOpenAiKeyHint && (
           <p className="demo-hint">
-            Tip: add `OPENAI_API_KEY` to let the demo use a real model. Without it, the
-            engine still demonstrates the step flow using its safe fallback behavior.
+            Add <code>OPENAI_API_KEY</code> to use a real model. Without it the
+            engine demonstrates the step flow using its safe fallback.
           </p>
         )}
-      </section>
+      </header>
 
-      {error && (
-        <section className="demo-panel">
-          <h2>Error</h2>
-          <p>{error}</p>
-        </section>
-      )}
+      <div aria-live="polite">
+        {error && (
+          <section className="demo-panel demo-panel--error">
+            <h2>Something went wrong</h2>
+            <p>{error}</p>
+          </section>
+        )}
 
-      {isComplete && (
-        <section className="demo-panel">
-          <h2>Quiz complete</h2>
-          <p>The engine returned a `complete` response for this session.</p>
-        </section>
-      )}
+        {isComplete && (
+          <section className="demo-panel demo-panel--complete">
+            <div className="demo-complete-icon">
+              <CheckIcon />
+            </div>
+            <h2>Quiz Complete</h2>
+            <p>
+              The engine returned a complete response for this session.
+            </p>
+          </section>
+        )}
 
-      {isReady && initialSteps.length > 0 && !isComplete && (
-        <section className="demo-panel">
-          <SphinxQuiz
-            onRequestPrefetch={handlePrefetch}
-            prefetchWhenRemainingSteps={0}
-            steps={initialSteps}
-          />
-        </section>
-      )}
+        {isReady && initialSteps.length > 0 && !isComplete && (
+          <section className="demo-panel">
+            <SphinxQuiz
+              onRequestPrefetch={handlePrefetch}
+              prefetchWhenRemainingSteps={0}
+              steps={initialSteps}
+            />
+          </section>
+        )}
+      </div>
     </main>
   );
 }

@@ -1,159 +1,415 @@
+/* ===================================================================
+   OpenSphinx Demo — Apple-inspired light theme
+   =================================================================== */
+
 :root {
-  color-scheme: light dark;
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  background: #0b1020;
-  color: #e6edf7;
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f5f5f7;
+  color: #1d1d1f;
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top, rgba(80, 120, 255, 0.22), transparent 35%),
-    #0b1020;
+  background: #f5f5f7;
 }
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
+  color: inherit;
 }
 
 button {
   cursor: pointer;
 }
 
+/* ===================================================================
+   Animations
+   =================================================================== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ===================================================================
+   Demo shell
+   =================================================================== */
+
+.demo-shell {
+  width: min(680px, calc(100% - 3rem));
+  margin: 0 auto;
+  padding: 80px 0 100px;
+}
+
+/* ===================================================================
+   Demo header — editorial, no card wrapper
+   =================================================================== */
+
+.demo-header {
+  margin-bottom: 48px;
+  animation: fadeInUp 600ms ease both;
+}
+
+.demo-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #86868b;
+}
+
+.demo-wordmark svg {
+  flex-shrink: 0;
+}
+
+.demo-header h1 {
+  margin: 0 0 12px;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  color: #1d1d1f;
+}
+
+.demo-copy {
+  margin: 0 0 28px;
+  max-width: 520px;
+  font-size: 17px;
+  line-height: 1.55;
+  color: #86868b;
+}
+
+.demo-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.demo-actions button {
+  height: 50px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 980px;
+  font-size: 17px;
+  font-weight: 500;
+  transition:
+    background 200ms ease,
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+
+.demo-actions button:first-child {
+  background: #0071e3;
+  color: #fff;
+}
+
+.demo-actions button:first-child:hover {
+  background: #0077ed;
+}
+
+.demo-actions button:first-child:active {
+  transform: scale(0.97);
+}
+
+.demo-actions button:last-child {
+  background: transparent;
+  color: #0071e3;
+  border: 1px solid rgba(0, 113, 227, 0.3);
+}
+
+.demo-actions button:last-child:hover {
+  background: rgba(0, 113, 227, 0.06);
+}
+
+.demo-actions button:last-child:active {
+  transform: scale(0.97);
+}
+
+.demo-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none !important;
+}
+
+.demo-hint {
+  margin-top: 20px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #aeaeb2;
+}
+
+.demo-hint code {
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.05);
+  font-size: 12px;
+}
+
+/* ===================================================================
+   Demo panels — white cards for quiz, error, and complete states
+   =================================================================== */
+
+.demo-panel {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  animation: fadeInUp 500ms ease both;
+}
+
+.demo-panel + .demo-panel {
+  margin-top: 16px;
+}
+
+.demo-panel h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #1d1d1f;
+}
+
+.demo-panel p {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #86868b;
+}
+
+/* Error panel */
+
+.demo-panel--error {
+  border-left: 3px solid #ff3b30;
+}
+
+.demo-panel--error h2 {
+  color: #ff3b30;
+}
+
+/* Complete panel */
+
+.demo-panel--complete {
+  text-align: center;
+  padding: 56px 36px;
+}
+
+.demo-panel--complete .demo-complete-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: #f0fdf4;
+}
+
+.demo-panel--complete h2 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.demo-panel--complete p {
+  max-width: 360px;
+  margin: 8px auto 0;
+}
+
+/* ===================================================================
+   SphinxQuiz overrides — light theme
+   =================================================================== */
+
 :where(.opensphinx-quiz) {
-  --opensphinx-surface: rgba(15, 23, 42, 0.86);
-  --opensphinx-surface-alt: rgba(18, 28, 51, 0.92);
-  --opensphinx-border: rgba(148, 163, 184, 0.18);
-  --opensphinx-accent: #7c9cff;
-  --opensphinx-accent-foreground: #f8fbff;
-  --opensphinx-text: #e5edf8;
-  --opensphinx-muted-text: #9db0c9;
-  --opensphinx-radius: 22px;
+  --opensphinx-surface: #ffffff;
+  --opensphinx-surface-alt: #ffffff;
+  --opensphinx-border: rgba(0, 0, 0, 0.08);
+  --opensphinx-accent: #0071e3;
+  --opensphinx-accent-foreground: #ffffff;
+  --opensphinx-text: #1d1d1f;
+  --opensphinx-muted-text: #86868b;
+  --opensphinx-radius: 16px;
   color: var(--opensphinx-text);
 }
 
 .opensphinx-card {
-  background: linear-gradient(
-    180deg,
-    var(--opensphinx-surface-alt),
-    var(--opensphinx-surface)
-  );
-  border: 1px solid var(--opensphinx-border);
-  border-radius: var(--opensphinx-radius);
-  padding: 1.25rem;
-  box-shadow: 0 18px 48px rgba(2, 6, 23, 0.28);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 .opensphinx-card__header {
-  margin-bottom: 1.25rem;
+  margin-bottom: 24px;
 }
 
 .opensphinx-question-type {
-  margin: 0 0 0.5rem;
+  margin: 0 0 6px;
   color: var(--opensphinx-muted-text);
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .opensphinx-question {
   margin: 0;
-  font-size: clamp(1.35rem, 3vw, 2rem);
-  line-height: 1.15;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
   color: var(--opensphinx-text);
 }
 
+/* ===================================================================
+   Form layout
+   =================================================================== */
+
 .opensphinx-form {
   display: grid;
-  gap: 1rem;
+  gap: 28px;
 }
 
 .opensphinx-step-questions {
   display: grid;
-  gap: 1rem;
+  gap: 28px;
 }
 
 .opensphinx-step-question {
   display: grid;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .opensphinx-step-question__header {
   display: grid;
-  gap: 0.35rem;
+  gap: 4px;
 }
 
 .opensphinx-step-question__title {
   margin: 0;
   color: var(--opensphinx-text);
-  font-size: 1rem;
+  font-size: 17px;
+  font-weight: 600;
   line-height: 1.4;
 }
 
+/* ===================================================================
+   Options — MCQ, binary, rating
+   =================================================================== */
+
 .opensphinx-options {
   display: grid;
-  gap: 0.75rem;
+  gap: 10px;
 }
 
-.opensphinx-options--binary,
+.opensphinx-options--binary {
+  grid-template-columns: 1fr 1fr;
+}
+
 .opensphinx-options--rating {
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+}
+
+.opensphinx-options--rating > .opensphinx-hint {
+  grid-column: 1 / -1;
 }
 
 .opensphinx-option,
 .opensphinx-binary-option,
 .opensphinx-rating-option {
-  border: 1px solid var(--opensphinx-border);
-  border-radius: calc(var(--opensphinx-radius) - 8px);
-  background: rgba(15, 23, 42, 0.6);
+  border: 1.5px solid rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  background: #fff;
   color: var(--opensphinx-text);
   transition:
-    border-color 120ms ease,
-    transform 120ms ease,
-    background 120ms ease;
+    border-color 200ms ease,
+    background 200ms ease,
+    transform 200ms ease,
+    box-shadow 200ms ease;
 }
 
 .opensphinx-option {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.9rem 1rem;
+  gap: 12px;
+  padding: 14px 16px;
 }
 
 .opensphinx-option:hover,
 .opensphinx-binary-option:hover,
 .opensphinx-rating-option:hover {
-  border-color: color-mix(in srgb, var(--opensphinx-accent) 65%, white 35%);
-  background: rgba(17, 28, 52, 0.92);
+  border-color: var(--opensphinx-accent);
+  background: rgba(0, 113, 227, 0.04);
   transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 113, 227, 0.08);
 }
 
-.opensphinx-option input {
+.opensphinx-option:active,
+.opensphinx-binary-option:active,
+.opensphinx-rating-option:active {
+  transform: scale(0.98);
+}
+
+.opensphinx-option input[type="radio"],
+.opensphinx-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
   accent-color: var(--opensphinx-accent);
+  flex-shrink: 0;
 }
 
 .opensphinx-binary-option,
 .opensphinx-rating-option {
-  padding: 0.95rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 16px;
+  font-weight: 500;
+  text-align: center;
 }
+
+.opensphinx-rating-option {
+  min-height: 52px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* ===================================================================
+   Text inputs
+   =================================================================== */
 
 .opensphinx-field {
   display: grid;
-  gap: 0.6rem;
+  gap: 8px;
 }
 
 .opensphinx-input,
@@ -164,175 +420,223 @@ button {
 
 .opensphinx-input,
 .opensphinx-textarea {
-  border: 1px solid var(--opensphinx-border);
-  border-radius: calc(var(--opensphinx-radius) - 10px);
-  background: rgba(8, 13, 26, 0.92);
+  border: 1.5px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: #fff;
   color: var(--opensphinx-text);
-  padding: 0.9rem 1rem;
+  padding: 14px 16px;
+  font-size: 15px;
+  outline: none;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.opensphinx-input:focus,
+.opensphinx-textarea:focus {
+  border-color: var(--opensphinx-accent);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
 }
 
 .opensphinx-input::placeholder,
 .opensphinx-textarea::placeholder {
-  color: color-mix(in srgb, var(--opensphinx-muted-text) 90%, white 10%);
+  color: #c7c7cc;
 }
 
+.opensphinx-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* ===================================================================
+   Slider
+   =================================================================== */
+
 .opensphinx-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.08);
+  outline: none;
   accent-color: var(--opensphinx-accent);
+}
+
+.opensphinx-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--opensphinx-accent);
+  border: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 150ms ease;
+}
+
+.opensphinx-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
 }
 
 .opensphinx-slider__meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 12px;
+  font-size: 13px;
   color: var(--opensphinx-muted-text);
 }
+
+.opensphinx-slider__meta strong {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--opensphinx-text);
+}
+
+/* ===================================================================
+   Hint text
+   =================================================================== */
 
 .opensphinx-hint {
   margin: 0;
   color: var(--opensphinx-muted-text);
-  font-size: 0.92rem;
+  font-size: 13px;
 }
+
+/* ===================================================================
+   Actions + submit
+   =================================================================== */
 
 .opensphinx-actions {
   display: flex;
   justify-content: flex-start;
+  padding-top: 4px;
 }
 
 .opensphinx-submit {
+  height: 50px;
+  padding: 0 32px;
   border: 0;
-  border-radius: 999px;
-  padding: 0.85rem 1.2rem;
-  background: linear-gradient(
-    135deg,
-    var(--opensphinx-accent),
-    color-mix(in srgb, var(--opensphinx-accent) 70%, white 30%)
-  );
-  color: var(--opensphinx-accent-foreground);
+  border-radius: 980px;
+  background: #0071e3;
+  color: #fff;
+  font-size: 17px;
   font-weight: 600;
-  box-shadow: 0 10px 24px rgba(57, 97, 196, 0.28);
+  transition:
+    background 200ms ease,
+    transform 200ms ease,
+    box-shadow 200ms ease;
 }
 
-.opensphinx-submit:disabled,
-.demo-actions button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-  transform: none;
-  box-shadow: none;
+.opensphinx-submit:hover {
+  background: #0077ed;
+  box-shadow: 0 4px 14px rgba(0, 113, 227, 0.25);
+  transform: scale(1.02);
 }
+
+.opensphinx-submit:active {
+  transform: scale(0.97);
+}
+
+.opensphinx-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+  transform: none !important;
+  box-shadow: none !important;
+  background: #0071e3;
+}
+
+/* ===================================================================
+   Progress bar
+   =================================================================== */
 
 .opensphinx-progress {
   position: relative;
   overflow: hidden;
-  margin-bottom: 0.9rem;
-  border: 1px solid var(--opensphinx-border);
+  margin-bottom: 24px;
+  border: 0;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.62);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .opensphinx-progress__bar {
-  height: 10px;
-  background: linear-gradient(
-    90deg,
-    var(--opensphinx-accent),
-    color-mix(in srgb, var(--opensphinx-accent) 65%, white 35%)
-  );
+  height: 6px;
+  border-radius: 999px;
+  background: var(--opensphinx-accent);
+  transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .opensphinx-progress__label {
   margin: 0;
-  padding: 0.5rem 0.9rem 0.65rem;
+  padding: 8px 0 0;
   color: var(--opensphinx-muted-text);
-  font-size: 0.9rem;
+  font-size: 13px;
+  font-weight: 500;
 }
+
+/* ===================================================================
+   Loading skeleton
+   =================================================================== */
 
 .opensphinx-loading-skeleton {
-  border: 1px dashed var(--opensphinx-border);
-  border-radius: calc(var(--opensphinx-radius) - 10px);
-  padding: 1rem;
-  color: var(--opensphinx-muted-text);
-  background: rgba(15, 23, 42, 0.4);
-}
-
-.demo-shell {
-  width: min(960px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: 3rem 0 4rem;
-}
-
-.demo-header,
-.demo-panel {
-  background: rgba(12, 19, 37, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 18px;
-  padding: 1.5rem;
-  backdrop-filter: blur(16px);
-}
-
-.demo-panel {
-  margin-top: 1rem;
-}
-
-.demo-kicker {
-  margin: 0 0 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.75rem;
-  color: #8bb7ff;
-}
-
-.demo-header h1,
-.demo-panel h2 {
-  margin: 0;
-}
-
-.demo-copy,
-.demo-hint {
-  color: #c0cad8;
-  line-height: 1.6;
-}
-
-.demo-actions {
-  display: flex;
-  gap: 0.75rem;
-  margin: 1rem 0;
-}
-
-.demo-actions button {
   border: 0;
-  border-radius: 999px;
-  padding: 0.8rem 1.2rem;
-  background: #4f7cff;
-  color: white;
+  border-radius: 12px;
+  padding: 24px;
+  color: var(--opensphinx-muted-text);
+  font-size: 15px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 25%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
 }
 
-.demo-actions button:last-child {
-  background: rgba(148, 163, 184, 0.2);
-}
-
-.demo-panel pre {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
+/* ===================================================================
+   Responsive
+   =================================================================== */
 
 @media (max-width: 720px) {
   .demo-shell {
-    width: min(100%, calc(100% - 1rem));
-    padding: 1rem 0 2rem;
+    width: calc(100% - 2rem);
+    padding: 40px 0 60px;
   }
 
-  .demo-header,
-  .demo-panel,
-  .opensphinx-card {
-    padding: 1rem;
+  .demo-header h1 {
+    font-size: 36px;
   }
 
-  .demo-actions,
+  .demo-copy {
+    font-size: 15px;
+  }
+
+  .demo-panel {
+    padding: 24px;
+    border-radius: 16px;
+  }
+
+  .demo-panel--complete {
+    padding: 40px 24px;
+  }
+
+  .demo-actions {
+    flex-direction: column;
+  }
+
+  .demo-actions button {
+    width: 100%;
+  }
+
+  .opensphinx-question {
+    font-size: 22px;
+  }
+
   .opensphinx-actions {
     flex-direction: column;
   }
 
-  .demo-actions button,
   .opensphinx-submit {
     width: 100%;
   }
