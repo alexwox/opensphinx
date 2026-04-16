@@ -108,7 +108,7 @@ function resolveModelStep(
 
   return buildStepResponse(
     Step.parse({
-    questions: sanitizedQuestions,
+      questions: sanitizedQuestions,
     }),
     config,
     normalizedSession,

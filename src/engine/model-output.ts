@@ -98,12 +98,13 @@ export function createNextStepWireSchema(batchSize: number) {
 }
 
 type ModelNextStepWire = z.infer<ReturnType<typeof createNextStepWireSchema>>;
+type ModelQuestion = NonNullable<ModelNextStepWire["questions"]>[number];
 
 export type ModelNextStepDecision =
   | { readonly type: "complete" }
   | { readonly type: "step"; readonly step: z.infer<typeof Step> };
 
-function normalizeModelQuestion(question: ModelNextStepWire["questions"][number]) {
+function normalizeModelQuestion(question: ModelQuestion) {
   switch (question.type) {
     case "mcq":
     case "yes_no":

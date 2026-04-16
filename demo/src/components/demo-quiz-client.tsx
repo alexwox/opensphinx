@@ -1,17 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { type ComponentProps, useState } from "react";
 
-import {
-  SphinxQuiz,
-  type SphinxQuizPrefetchRequest,
-  type SphinxQuizPrefetchResult,
-  type SphinxQuizThemeConfig
-} from "opensphinx/react";
+import { SphinxQuiz } from "opensphinx/react";
 import type {
   AnswerValue,
   EngineStepResponse,
-  ScoreResult,
   SessionHistoryItem,
   SessionState,
   Step
@@ -19,20 +13,13 @@ import type {
 
 import { demoQuizConfig } from "../lib/quiz-config";
 
-const demoQuizTheme: SphinxQuizThemeConfig = {
-  surface: "rgba(11, 16, 32, 0.88)",
-  surfaceAlt: "rgba(15, 23, 42, 0.92)",
-  border: "rgba(148, 163, 184, 0.18)",
-  accent: "#7c9cff",
-  accentForeground: "#f8fbff",
-  text: "#e5edf8",
-  mutedText: "#9db0c9",
-  radius: 22
-};
+type QuizProps = ComponentProps<typeof SphinxQuiz>;
+type PrefetchHandler = NonNullable<QuizProps["onRequestPrefetch"]>;
+type PrefetchRequest = Parameters<PrefetchHandler>[0];
+type PrefetchResult = Awaited<ReturnType<PrefetchHandler>>;
 
 type DemoApiResponse = {
   next: EngineStepResponse;
-  report?: string;
   error?: string;
 };
 
@@ -67,7 +54,7 @@ async function requestNextStep(session: SessionState) {
 }
 
 function mergeStepIntoHistory(
-  submission: SphinxQuizPrefetchRequest["submission"]
+  submission: PrefetchRequest["submission"]
 ): SessionHistoryItem[] {
   return submission.step.questions.map((question, index) => ({
     question,
@@ -84,15 +71,13 @@ export function DemoQuizClient({
   const [initialSteps, setInitialSteps] = useState<readonly Step[]>([]);
   const [isStarting, setIsStarting] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [scores, setScores] = useState<ScoreResult | null>(null);
-  const [report, setReport] = useState<string | null>(null);
 
   const startDemo = async () => {
     setIsStarting(true);
     setError(null);
-    setScores(null);
-    setReport(null);
+    setIsComplete(false);
 
     const nextSession = buildInitialSession();
 
@@ -100,11 +85,10 @@ export function DemoQuizClient({
       const payload = await requestNextStep(nextSession);
 
       if (payload.next.type === "complete") {
-        setScores(payload.next.scores);
-        setReport(payload.report ?? null);
         setSession(nextSession);
         setInitialSteps([]);
         setIsReady(true);
+        setIsComplete(true);
         return;
       }
 
@@ -123,8 +107,8 @@ export function DemoQuizClient({
   };
 
   const handlePrefetch = async (
-    request: SphinxQuizPrefetchRequest
-  ): Promise<SphinxQuizPrefetchResult> => {
+    request: PrefetchRequest
+  ): Promise<PrefetchResult> => {
     const nextSession: SessionState = {
       ...session,
       history: [...session.history, ...mergeStepIntoHistory(request.submission)],
@@ -136,12 +120,10 @@ export function DemoQuizClient({
     const payload = await requestNextStep(nextSession);
 
     if (payload.next.type === "complete") {
-      setScores(payload.next.scores);
-      setReport(payload.report ?? null);
+      setIsComplete(true);
 
       return {
-        type: "complete",
-        scores: payload.next.scores
+        type: "complete"
       };
     }
 
@@ -154,8 +136,7 @@ export function DemoQuizClient({
   const resetDemo = () => {
     setSession(buildInitialSession());
     setInitialSteps([]);
-    setScores(null);
-    setReport(null);
+    setIsComplete(false);
     setError(null);
     setIsReady(false);
   };
@@ -192,27 +173,19 @@ export function DemoQuizClient({
         </section>
       )}
 
-      {scores && (
+      {isComplete && (
         <section className="demo-panel">
-          <h2>Scores</h2>
-          <pre>{JSON.stringify(scores, null, 2)}</pre>
+          <h2>Quiz complete</h2>
+          <p>The engine returned a `complete` response for this session.</p>
         </section>
       )}
 
-      {report && (
-        <section className="demo-panel">
-          <h2>Report</h2>
-          <pre>{report}</pre>
-        </section>
-      )}
-
-      {isReady && initialSteps.length > 0 && !scores && (
+      {isReady && initialSteps.length > 0 && !isComplete && (
         <section className="demo-panel">
           <SphinxQuiz
             onRequestPrefetch={handlePrefetch}
             prefetchWhenRemainingSteps={0}
             steps={initialSteps}
-            theme={demoQuizTheme}
           />
         </section>
       )}

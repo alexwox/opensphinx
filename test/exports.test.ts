@@ -71,8 +71,20 @@ describe("opensphinx public exports", () => {
     expect(typeof createQuizEngine).toBe("function");
   });
 
+  it("keeps the engine runtime surface minimal", async () => {
+    const engineModule = await import("opensphinx/engine");
+
+    expect(Object.keys(engineModule).sort()).toEqual(["createQuizEngine"]);
+  });
+
   it("resolves the react subpath", () => {
     expect(typeof SphinxQuiz).toBe("function");
+  });
+
+  it("keeps the react runtime surface minimal", async () => {
+    const reactModule = await import("opensphinx/react");
+
+    expect(Object.keys(reactModule).sort()).toEqual(["SphinxQuiz"]);
   });
 
   it("renders the React quiz surface", () => {
@@ -120,32 +132,6 @@ describe("opensphinx public exports", () => {
     );
 
     expect(html).toContain("Preparing the next question");
-  });
-
-  it("applies custom theme variables to the React quiz surface", () => {
-    const html = renderToStaticMarkup(
-      React.createElement(SphinxQuiz, {
-        steps: [
-          {
-            questions: [
-              QuestionSpec.parse({
-                type: "yes_no",
-                question: "Do you like themed components?"
-              })
-            ]
-          }
-        ],
-        theme: {
-          accent: "#ff4d6d",
-          radius: 24,
-          surface: "#111827"
-        }
-      })
-    );
-
-    expect(html).toContain('data-theme="custom"');
-    expect(html).toContain("--opensphinx-accent:#ff4d6d");
-    expect(html).toContain("--opensphinx-radius:24px");
   });
 
   it("resolves the schemas subpath", async () => {
@@ -206,38 +192,6 @@ describe("opensphinx public exports", () => {
     expect(engine.config.batchSize).toBe(3);
     expect(engine.config.maxSteps).toBeUndefined();
     expect(engine.config.language).toBe("en");
-  });
-
-  it("emits engine log events for key decisions", async () => {
-    const logger = vi.fn();
-    const engine = createQuizEngine({
-      config: {
-        ...baseConfig,
-        seedSteps: [
-          {
-            questions: [
-              {
-                type: "yes_no",
-                question: "Do you enjoy pair programming?"
-              }
-            ]
-          }
-        ]
-      },
-      logger
-    });
-
-    await engine.generateStep({
-      sessionId: "session_logging",
-      config: engine.config,
-      history: []
-    });
-
-    expect(logger).toHaveBeenCalled();
-    expect(logger.mock.calls[0]?.[0]).toMatchObject({
-      type: "seed-step-used",
-      sessionId: "session_logging"
-    });
   });
 
   it("exposes the step schema and step response schema", () => {
@@ -732,7 +686,7 @@ describe("opensphinx public exports", () => {
     });
   });
 
-  it("completes with scaffold scores and report output", async () => {
+  it("includes scaffold scores in the complete response", async () => {
     const engine = createQuizEngine({
       config: {
         ...baseConfig,
@@ -756,15 +710,13 @@ describe("opensphinx public exports", () => {
     });
 
     const next = await engine.generateStep(session);
-    const scores = await engine.score(session);
-    const report = await engine.generateReport(session, scores);
 
-    expect(next).toMatchObject({
-      type: "complete"
-    });
-    expect(scores.dimensions).toHaveLength(1);
-    expect(scores.dimensions[0]?.id).toBe("collaboration");
-    expect(report).toContain('Report for "Work Style"');
+    expect(next.type).toBe("complete");
+    if (next.type !== "complete") {
+      throw new Error("Expected completion.");
+    }
+    expect(next.scores.dimensions).toHaveLength(1);
+    expect(next.scores.dimensions[0]?.id).toBe("collaboration");
   });
 
   it("preserves consumer-facing types", () => {

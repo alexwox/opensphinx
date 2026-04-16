@@ -1,101 +1,89 @@
 # OpenSphinx Goal
 
-This document defines **v1: a bare-minimum working version** of `opensphinx`, plus a **Later** section for everything we intentionally defer.
+This document describes the currently supported v1 surface of `opensphinx`.
 
-## v1 — What We Ship First
+## Supported Product Shape
 
-The smallest credible loop:
+OpenSphinx should read like one obvious product:
 
-1. **`SessionState`** is the source of truth: `history`, **`pendingSteps`** (queued `Step` objects), `completedSteps`, plus `sessionId` and `config`.
-2. **Server:** `createQuizEngine({ config, model? }).generateStep(session)` returns **`EngineStepResponse` only** — either `{ type: "step", step }` or `{ type: "complete", scores }`.
-3. **Seed-first:** the engine serves developer **`seedSteps`** / **`seedQuestions`** (as steps) before calling the model.
-4. **Then minimal AI:** after seeds, one structured step per call (with retry + basic fallback); no alternate engine entry points.
-5. **Client:** **`SphinxQuiz`** renders **one question at a time** inside the current `Step`, by `QuestionSpec.type`, and supports an optional **prefetch** hook to append more `Step`s.
+1. `SessionState` and `Step` are the runtime source of truth.
+2. `createQuizEngine({ model, config }).generateStep(session)` is the only engine generation path.
+3. `SphinxQuiz` is the only React surface.
+4. `README.md` should be enough to understand the package end to end.
 
-### v1 mental model
+## Current v1 Workflow
 
 ```text
-SessionState → generateStep() → Step (or complete) → SphinxQuiz → answers → update session → repeat
+SessionState -> generateStep() -> EngineStepResponse -> Step -> SphinxQuiz -> updated SessionState
 ```
 
-### v1 imports (all you need)
+What that means in practice:
 
-```ts
-import { SphinxQuiz } from "opensphinx/react";
-import { createQuizEngine } from "opensphinx/engine";
-import {
-  QuizConfig,
-  SessionState,
-  EngineStepResponse,
-  Step
-} from "opensphinx/schemas";
-```
+- The engine serves `seedSteps` or `seedQuestions` first.
+- After seeds, the engine asks for one adaptive step at a time.
+- `EngineStepResponse` is always either `{ type: "step", step }` or `{ type: "complete", scores }`.
+- The React layer renders one question at a time from the current `Step`.
+- Optional prefetch can append more steps, but the mental model stays step-first.
 
-### v1 non-goals (explicit)
+## Public API We Intend Users To Rely On
 
-- No `generateBatch`, `generateNext`, or legacy question/batch response types in the public contract.
-- No promise of production-grade prefetch policy, scoring, or reporting beyond what the stub needs to complete a demo.
+`opensphinx/schemas`
 
----
+- `QuizConfig`
+- `SessionState`
+- `Step`
+- `EngineStepResponse`
+- question and answer schemas
 
-## Later (deferred)
+`opensphinx/engine`
 
-Everything below is **out of v1 scope** but still directionally aligned with the product.
+- `createQuizEngine`
 
-### Product / UX
+`opensphinx/react`
 
-- Rich prefetch and replenishment strategy
-- ShadCN-level component polish
-- Report display component in React
-- Session serialization helpers
-- Examples for Remix, Express, etc.
+- `SphinxQuiz`
+
+Everything else should be treated as internal implementation detail or deferred.
+
+## v1 Requirements
+
+### Shared Contracts
+
+- `QuestionSpec` and `AnswerValue` cover the supported question catalog.
+- `QuizConfig` carries `systemPrompt`, seeds, limits, and batch size.
+- `SessionState` carries `history`, `pendingSteps`, `completedSteps`, `sessionId`, and `config`.
+- `Step` is the unit of generation and rendering.
 
 ### Engine
 
-- Real scoring mapped to `scoringDimensions`
-- AI-backed reports
-- Stronger duplicate-avoidance and provider guidance
-- Broader edge-case and safety review
-
-### Docs and release
-
-- README as full product story
-- TSDoc on all public APIs
-- API reference site, contributing guide, npm publish checklist
-
----
-
-## Implementation checklist (v1)
-
-Status: **`[v1]`** = required for bare-minimum; **`[later]`** = tracked in “Later” above.
-
-### Shared contracts
-
-- `[v1]` Question type catalog + `QuestionSpec` / `AnswerValue`
-- `[v1]` `QuizConfig` with `systemPrompt`, seeds, `batchSize`, limits
-- `[v1]` `Step`, `SessionState` (`pendingSteps` only), `EngineStepResponse`
-- `[later]` Serialization helpers, long-term API stability review
-
-### Engine
-
-- `[v1]` `createQuizEngine` + **`generateStep` only** (plus `score` / `generateReport` stubs if demo needs them)
-- `[v1]` Seed-first, then minimal model step
-- `[v1]` Hard limits (`min`/`max` questions and steps) and schema-validated model output
-- `[later]` Rich scoring, AI reports, advanced diagnostics
+- `generateStep()` is the only supported generation API.
+- Provider injection happens through the `model` option.
+- Hard limits for questions and steps are enforced.
+- Structured output stays compatible with AI SDK providers that require an object-shaped JSON schema.
+- Completion returns scaffold scores through `EngineStepResponse`.
 
 ### React
 
-- `[v1]` **`SphinxQuiz`** step-first: `step` / `steps`, optional `onRequestPrefetch`
-- `[v1]` Render all question types in the catalog (basic controls)
-- `[later]` ShadCN-quality UI, report panel, heavy animation
+- `SphinxQuiz` accepts `step` or `steps`.
+- `SphinxQuiz` renders all supported question types.
+- `SphinxQuiz` can request more steps through `onRequestPrefetch`.
+- The official docs only describe the step-first flow.
 
 ### Demo
 
-- `[v1]` Thin Next.js app: POST session → `generateStep` → return `EngineStepResponse`
-- `[later]` Multi-framework examples
+- The demo should mirror the package workflow, not invent its own one.
+- The demo should show config, provider injection, seed steps, limits, and session updates.
+- The demo should stop at the core loop and completion state.
 
----
+## Explicitly Deferred
+
+- Rich reports and report UI
+- Advanced public diagnostics surface
+- Multiple competing React surfaces
+- Multi-framework examples beyond the thin demo
+- Heavier styling systems or broader theming API
+- Long-form documentation beyond the README
 
 ## Principle
 
-OpenSphinx v1 should be **boringly obvious**: steps in, steps out, render by type, done.
+OpenSphinx v1 should be boring in the best way: steps in, steps out, render by type, repeat until complete.

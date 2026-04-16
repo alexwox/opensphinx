@@ -1,20 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createQuizEngine, type EngineLogEvent } from "opensphinx/engine";
-import {
-  EngineStepResponse,
-  ScoreResult,
-  SessionState
-} from "opensphinx/schemas";
+import { createQuizEngine } from "opensphinx/engine";
+import { EngineStepResponse, SessionState } from "opensphinx/schemas";
 
 import { demoQuizConfig } from "../../../lib/quiz-config";
 
 export const dynamic = "force-dynamic";
 
 const QuizRequest = z.object({
-  session: SessionState,
-  scores: ScoreResult.optional()
+  session: SessionState
 });
 
 async function getDemoEngine() {
@@ -25,33 +20,9 @@ async function getDemoEngine() {
     model = openai("gpt-4o-mini");
   }
 
-  const logger = (event: EngineLogEvent) => {
-    const details = [
-      `type=${event.type}`,
-      `session=${event.sessionId}`,
-      `history=${event.historyCount}`,
-      `steps=${event.completedSteps}`
-    ];
-
-    if (event.questionCount !== undefined) {
-      details.push(`questions=${event.questionCount}`);
-    }
-
-    if (event.duplicateCount !== undefined) {
-      details.push(`duplicates=${event.duplicateCount}`);
-    }
-
-    if (event.error) {
-      details.push(`error=${event.error}`);
-    }
-
-    console.info(`[opensphinx-demo] ${event.message} (${details.join(", ")})`);
-  };
-
   return createQuizEngine({
     model,
-    config: demoQuizConfig,
-    logger
+    config: demoQuizConfig
   });
 }
 
@@ -65,15 +36,6 @@ export async function POST(request: Request) {
     });
 
     const next = await engine.generateStep(session);
-
-    if (next.type === "complete") {
-      const report = await engine.generateReport(session, next.scores);
-
-      return NextResponse.json({
-        next: EngineStepResponse.parse(next),
-        report
-      });
-    }
 
     return NextResponse.json({
       next: EngineStepResponse.parse(next)
