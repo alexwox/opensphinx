@@ -64,7 +64,70 @@ function sendDebugLog(payload: {
 }
 
 function createNextStepWireSchema(batchSize: number) {
-  const stepQuestions = z.array(QuestionSpec).min(1).max(batchSize);
+  const nullableMinMaxLabels = z
+    .object({
+      min: z.string(),
+      max: z.string()
+    })
+    .nullable();
+  const nullableLowHighLabels = z
+    .object({
+      low: z.string(),
+      high: z.string()
+    })
+    .nullable();
+
+  const openAiQuestionSpec = z.discriminatedUnion("type", [
+    z.object({
+      type: z.literal("mcq"),
+      question: z.string(),
+      options: z.array(z.string()).min(2).max(6),
+      allowMultiple: z.boolean()
+    }),
+    z.object({
+      type: z.literal("free_text"),
+      question: z.string(),
+      placeholder: z.string().nullable(),
+      maxLength: z.number()
+    }),
+    z.object({
+      type: z.literal("slider"),
+      question: z.string(),
+      min: z.number(),
+      max: z.number(),
+      step: z.number(),
+      labels: nullableMinMaxLabels
+    }),
+    z.object({
+      type: z.literal("rating"),
+      question: z.string(),
+      max: z.number(),
+      labels: nullableLowHighLabels
+    }),
+    z.object({
+      type: z.literal("yes_no"),
+      question: z.string()
+    }),
+    z.object({
+      type: z.literal("number"),
+      question: z.string(),
+      min: z.number().nullable(),
+      max: z.number().nullable(),
+      unit: z.string().nullable()
+    }),
+    z.object({
+      type: z.literal("date"),
+      question: z.string()
+    }),
+    z.object({
+      type: z.literal("multi_select"),
+      question: z.string(),
+      options: z.array(z.string()).min(2).max(10),
+      maxSelections: z.number().nullable()
+    })
+  ]);
+
+  const stepQuestions = z.array(openAiQuestionSpec).min(1).max(batchSize);
 
   return z
     .object({
@@ -198,7 +261,49 @@ function wireToDecision(wire: ModelNextStepWire): ModelNextStepDecision {
 
   return {
     type: "step",
-    step: Step.parse({ questions })
+    step: Step.parse({
+      questions: questions.map((question) => {
+        switch (question.type) {
+          case "mcq":
+            return QuestionSpec.parse(question);
+          case "free_text":
+            return QuestionSpec.parse({
+              ...question,
+              placeholder: question.placeholder ?? undefined
+            });
+          case "slider":
+            return QuestionSpec.parse({
+              ...question,
+              labels: question.labels ?? undefined
+            });
+          case "rating":
+            return QuestionSpec.parse({
+              ...question,
+              labels: question.labels ?? undefined
+            });
+          case "yes_no":
+            return QuestionSpec.parse(question);
+          case "number":
+            return QuestionSpec.parse({
+              ...question,
+              min: question.min ?? undefined,
+              max: question.max ?? undefined,
+              unit: question.unit ?? undefined
+            });
+          case "date":
+            return QuestionSpec.parse(question);
+          case "multi_select":
+            return QuestionSpec.parse({
+              ...question,
+              maxSelections: question.maxSelections ?? undefined
+            });
+          default: {
+            const exhaustiveCheck: never = question;
+            return exhaustiveCheck;
+          }
+        }
+      })
+    })
   };
 }
 

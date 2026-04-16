@@ -416,11 +416,13 @@ describe("opensphinx public exports", () => {
           {
             type: "rating",
             question: "How confident are you in your onboarding process?",
-            max: 5
+            max: 5,
+            labels: null
           },
           {
             type: "free_text",
             question: "What part of onboarding feels weakest?",
+            placeholder: null,
             maxLength: 500
           }
         ]
@@ -474,6 +476,7 @@ describe("opensphinx public exports", () => {
           {
             type: "free_text",
             question: "What part of onboarding feels weakest?",
+            placeholder: null,
             maxLength: 500
           }
         ]
