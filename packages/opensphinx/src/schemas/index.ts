@@ -11,7 +11,7 @@ export {
   YesNoQuestion
 } from "./question-types";
 
-export { QuizConfig, ScoringDimension } from "./quiz-config";
+export { FormConfig, ScoringDimension } from "./form-config";
 
 export { DimensionScore, ScoreResult } from "./scoring";
 

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { AnswerValue, QuestionSpec } from "./question-types";
-import { QuizConfig } from "./quiz-config";
+import { FormConfig } from "./form-config";
 import { ScoreResult } from "./scoring";
 import { Step } from "./step";
 
@@ -12,10 +12,10 @@ export const SessionHistoryItem = z.object({
 
 export type SessionHistoryItem = z.infer<typeof SessionHistoryItem>;
 
-/** Runtime quiz progress: history + optional queued upcoming steps (`pendingSteps` only). */
+/** Runtime form progress: history + optional queued upcoming steps (`pendingSteps` only). */
 export const SessionState = z.object({
   sessionId: z.string(),
-  config: QuizConfig,
+  config: FormConfig,
   history: z.array(SessionHistoryItem),
   pendingSteps: z.array(Step).default([]),
   completedSteps: z.number().int().nonnegative().default(0)

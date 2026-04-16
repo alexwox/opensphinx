@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { SphinxQuiz } from "opensphinx/react";
+import { SphinxForm } from "opensphinx/react";
 
 afterEach(() => {
   cleanup();
@@ -25,14 +25,14 @@ function createDeferred<T>() {
   };
 }
 
-describe("SphinxQuiz step flow", () => {
+describe("SphinxForm step flow", () => {
   it("renders prefetched steps and advances through them", () => {
     const handleAnswer = vi.fn();
     const handleStepSubmit = vi.fn();
     const handleStepsComplete = vi.fn();
 
     render(
-      <SphinxQuiz
+      <SphinxForm
         onAnswer={handleAnswer}
         onStepSubmit={handleStepSubmit}
         onStepsComplete={handleStepsComplete}
@@ -109,7 +109,7 @@ describe("SphinxQuiz step flow", () => {
 
   it("supports a single prefetched step prop", () => {
     render(
-      <SphinxQuiz
+      <SphinxForm
         step={{
           questions: [
             {
@@ -141,7 +141,7 @@ describe("SphinxQuiz step flow", () => {
     const handlePrefetch = vi.fn().mockReturnValue(deferred.promise);
 
     render(
-      <SphinxQuiz
+      <SphinxForm
         onRequestPrefetch={handlePrefetch}
         prefetchWhenRemainingSteps={0}
         steps={[

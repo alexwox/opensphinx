@@ -2,7 +2,7 @@
 
 import { type ComponentProps, useState } from "react";
 
-import { SphinxQuiz } from "opensphinx/react";
+import { SphinxForm } from "opensphinx/react";
 import type {
   AnswerValue,
   EngineStepResponse,
@@ -11,10 +11,10 @@ import type {
   Step
 } from "opensphinx/schemas";
 
-import { demoQuizConfig } from "../lib/quiz-config";
+import { demoFormConfig } from "../lib/form-config";
 
-type QuizProps = ComponentProps<typeof SphinxQuiz>;
-type PrefetchHandler = NonNullable<QuizProps["onRequestPrefetch"]>;
+type FormProps = ComponentProps<typeof SphinxForm>;
+type PrefetchHandler = NonNullable<FormProps["onRequestPrefetch"]>;
 type PrefetchRequest = Parameters<PrefetchHandler>[0];
 type PrefetchResult = Awaited<ReturnType<PrefetchHandler>>;
 
@@ -26,7 +26,7 @@ type DemoApiResponse = {
 function buildInitialSession(): SessionState {
   return {
     sessionId: crypto.randomUUID(),
-    config: demoQuizConfig,
+    config: demoFormConfig,
     history: [],
     pendingSteps: [],
     completedSteps: 0
@@ -34,7 +34,7 @@ function buildInitialSession(): SessionState {
 }
 
 async function requestNextStep(session: SessionState) {
-  const response = await fetch("/api/quiz", {
+  const response = await fetch("/api/form", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -47,7 +47,7 @@ async function requestNextStep(session: SessionState) {
   const payload = (await response.json()) as DemoApiResponse;
 
   if (!response.ok || payload.error) {
-    throw new Error(payload.error ?? "Quiz request failed.");
+    throw new Error(payload.error ?? "Form request failed.");
   }
 
   return payload;
@@ -125,7 +125,7 @@ function CheckIcon() {
   );
 }
 
-export function DemoQuizClient({
+export function DemoFormClient({
   showOpenAiKeyHint = true,
   mode = "full"
 }: {
@@ -206,7 +206,7 @@ export function DemoQuizClient({
     <div className={`demo-shell demo-shell--${mode}`}>
       <header className="demo-header">
         <SphinxWordmark />
-        <h1>{mode === "preview" ? "Adaptive quiz preview" : "AI Readiness Audit"}</h1>
+        <h1>{mode === "preview" ? "Adaptive form preview" : "AI Readiness Audit"}</h1>
         <p className="demo-copy">
           {mode === "preview"
             ? "Start the package demo directly on the page, then open the full route for the reference implementation."
@@ -241,7 +241,7 @@ export function DemoQuizClient({
             <div className="demo-complete-icon">
               <CheckIcon />
             </div>
-            <h2>Quiz Complete</h2>
+            <h2>Form Complete</h2>
             <p>
               The engine returned a complete response for this session.
             </p>
@@ -250,7 +250,7 @@ export function DemoQuizClient({
 
         {isReady && initialSteps.length > 0 && !isComplete && (
           <section className="demo-panel">
-            <SphinxQuiz
+            <SphinxForm
               allowBack
               onRequestPrefetch={handlePrefetch}
               prefetchWhenRemainingSteps={0}

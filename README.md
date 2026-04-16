@@ -1,6 +1,6 @@
 # OpenSphinx
 
-OpenSphinx is the open-source AI quiz engine that asks smarter questions.
+OpenSphinx is an open-source AI form engine for adaptive question flows.
 
 > Alpha release: OpenSphinx is usable today, but the API may still evolve and production deployments should keep session state authoritative on the server.
 
@@ -12,10 +12,10 @@ It is one package with three explicit imports:
 
 The supported workflow is intentionally narrow:
 
-1. Build a `QuizConfig`.
+1. Build a `FormConfig`.
 2. Store runtime progress in `SessionState`.
-3. Call `createQuizEngine({ model, config }).generateStep(session)` on the server.
-4. Render the returned `Step` with `SphinxQuiz`.
+3. Call `createFormEngine({ model, config }).generateStep(session)` on the server.
+4. Render the returned `Step` with `SphinxForm`.
 5. Append answers to `session.history`, increment `completedSteps`, and repeat until the engine returns `complete`.
 
 ## Core Mental Model
@@ -23,12 +23,12 @@ The supported workflow is intentionally narrow:
 `SessionState` and `Step` are the runtime source of truth.
 
 ```text
-SessionState -> generateStep() -> EngineStepResponse -> Step -> SphinxQuiz -> updated SessionState
+SessionState -> generateStep() -> EngineStepResponse -> Step -> SphinxForm -> updated SessionState
 ```
 
 `generateStep()` is the only supported engine generation path.
 
-`SphinxQuiz` is the only supported React surface.
+`SphinxForm` is the only supported React surface.
 
 There is intentionally no root `opensphinx` catch-all export.
 
@@ -47,13 +47,13 @@ You do not need to install `ai` or `zod` separately unless your app uses them di
 ## The 3 Imports
 
 ```ts
-import { createQuizEngine } from "opensphinx/engine";
-import { SphinxQuiz } from "opensphinx/react";
+import { createFormEngine } from "opensphinx/engine";
+import { SphinxForm } from "opensphinx/react";
 import type {
   AnswerValue,
   EngineStepResponse,
   QuestionSpec,
-  QuizConfig,
+  FormConfig,
   SessionState,
   Step
 } from "opensphinx/schemas";
@@ -64,9 +64,9 @@ import type {
 This is the main place to define your system prompt, seeds, and hard limits.
 
 ```ts
-import type { QuizConfig } from "opensphinx/schemas";
+import type { FormConfig } from "opensphinx/schemas";
 
-export const quizConfig: QuizConfig = {
+export const formConfig: FormConfig = {
   id: "ai-readiness-audit",
   name: "AI Readiness Audit",
   description: "Evaluate how prepared a team is to adopt AI into daily work.",
@@ -114,14 +114,14 @@ The engine is framework-agnostic. You give it a config and any AI SDK-compatible
 
 ```ts
 import { openai } from "@ai-sdk/openai";
-import { createQuizEngine } from "opensphinx/engine";
+import { createFormEngine } from "opensphinx/engine";
 import type { SessionState } from "opensphinx/schemas";
 
-import { quizConfig } from "./quiz-config";
+import { formConfig } from "./form-config";
 
-const engine = createQuizEngine({
+const engine = createFormEngine({
   model: openai("gpt-4o-mini"),
-  config: quizConfig
+  config: formConfig
 });
 
 export async function getNextStep(session: SessionState) {
@@ -131,18 +131,18 @@ export async function getNextStep(session: SessionState) {
 
 If you omit `model`, the engine still serves seed steps and can fall back safely for local development.
 
-## Client Example With `SphinxQuiz`
+## Client Example With `SphinxForm`
 
-`SphinxQuiz` renders one question at a time from the current `Step`. If you pass `onRequestPrefetch`, it can append more steps in the background.
+`SphinxForm` renders one question at a time from the current `Step`. If you pass `onRequestPrefetch`, it can append more steps in the background.
 
 ```tsx
 "use client";
 
 import { useState } from "react";
-import { SphinxQuiz } from "opensphinx/react";
+import { SphinxForm } from "opensphinx/react";
 import type { Step } from "opensphinx/schemas";
 
-export function QuizScreen({
+export function FormScreen({
   firstStep,
   loadMore
 }: {
@@ -153,11 +153,11 @@ export function QuizScreen({
   const [isComplete, setIsComplete] = useState(false);
 
   if (isComplete) {
-    return <p>Quiz complete.</p>;
+    return <p>Form complete.</p>;
   }
 
   return (
-    <SphinxQuiz
+    <SphinxForm
       steps={steps}
       prefetchWhenRemainingSteps={0}
       onRequestPrefetch={async () => {
@@ -205,13 +205,13 @@ If you care about the exact opening flow, prefer `seedSteps`.
 
 ## System Prompt Guidance
 
-Keep the system prompt focused on quiz behavior, not UI instructions.
+Keep the system prompt focused on form behavior, not UI instructions.
 
 - Tell the model what information it is trying to learn.
 - Tell it when to stop and return `complete`.
 - Tell it to avoid repeating known questions.
 - Tell it to prefer structured, specific follow-ups over vague prompts.
-- Keep product rules in `systemPrompt`; keep hard limits in `QuizConfig`.
+- Keep product rules in `systemPrompt`; keep hard limits in `FormConfig`.
 
 ## Provider Injection
 
@@ -222,9 +222,9 @@ OpenAI:
 ```ts
 import { openai } from "@ai-sdk/openai";
 
-const engine = createQuizEngine({
+const engine = createFormEngine({
   model: openai("gpt-4o-mini"),
-  config: quizConfig
+  config: formConfig
 });
 ```
 
@@ -233,30 +233,30 @@ Anthropic:
 ```ts
 import { anthropic } from "@ai-sdk/anthropic";
 
-const engine = createQuizEngine({
+const engine = createFormEngine({
   model: anthropic("claude-3-5-sonnet-latest"),
-  config: quizConfig
+  config: formConfig
 });
 ```
 
 Provider-agnostic pattern:
 
 ```ts
-import { createQuizEngine } from "opensphinx/engine";
+import { createFormEngine } from "opensphinx/engine";
 
-type QuizModel = Parameters<typeof createQuizEngine>[0]["model"];
+type FormModel = Parameters<typeof createFormEngine>[0]["model"];
 
-export function buildEngine(model: QuizModel) {
-  return createQuizEngine({
+export function buildEngine(model: FormModel) {
+  return createFormEngine({
     model,
-    config: quizConfig
+    config: formConfig
   });
 }
 ```
 
 ## Step Limits And Question Limits
 
-These fields shape how long the quiz can run:
+These fields shape how long the form can run:
 
 - `batchSize`: preferred number of questions in each generated step.
 - `minQuestions`: minimum total answered questions before completion is allowed.
@@ -267,7 +267,7 @@ These fields shape how long the quiz can run:
 Example:
 
 ```ts
-const quizConfig: QuizConfig = {
+const formConfig: FormConfig = {
   // ...
   batchSize: 2,
   minQuestions: 6,
@@ -287,7 +287,7 @@ For a production deployment, keep the authoritative session on the server instea
 "use client";
 
 import { useState } from "react";
-import { SphinxQuiz } from "opensphinx/react";
+import { SphinxForm } from "opensphinx/react";
 import type {
   AnswerValue,
   EngineStepResponse,
@@ -295,12 +295,12 @@ import type {
   Step
 } from "opensphinx/schemas";
 
-import { quizConfig } from "./quiz-config";
+import { formConfig } from "./form-config";
 
 function buildSession(): SessionState {
   return {
     sessionId: crypto.randomUUID(),
-    config: quizConfig,
+    config: formConfig,
     history: [],
     pendingSteps: [],
     completedSteps: 0
@@ -308,7 +308,7 @@ function buildSession(): SessionState {
 }
 
 async function requestNextStep(session: SessionState): Promise<EngineStepResponse> {
-  const response = await fetch("/api/quiz", {
+  const response = await fetch("/api/form", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -337,7 +337,7 @@ function appendStepAnswers(
   };
 }
 
-export function QuizFlow() {
+export function FormFlow() {
   const [session, setSession] = useState<SessionState>(() => buildSession());
   const [steps, setSteps] = useState<readonly Step[]>([]);
   const [isComplete, setIsComplete] = useState(false);
@@ -354,15 +354,15 @@ export function QuizFlow() {
   }
 
   if (isComplete) {
-    return <p>Quiz complete.</p>;
+    return <p>Form complete.</p>;
   }
 
   if (steps.length === 0) {
-    return <button onClick={start}>Start quiz</button>;
+    return <button onClick={start}>Start form</button>;
   }
 
   return (
-    <SphinxQuiz
+    <SphinxForm
       steps={steps}
       prefetchWhenRemainingSteps={0}
       onRequestPrefetch={async ({ submission }) => {

@@ -1,4 +1,4 @@
-import { QuizConfig, SessionState } from "../schemas";
+import { FormConfig, SessionState } from "../schemas";
 
 const QUESTION_TYPE_GUIDANCE = [
   "mcq",
@@ -35,7 +35,7 @@ export function buildPrompt(
   desiredQuestionCount: number
 ) {
   const normalizedSession = SessionState.parse(sessionState);
-  const config = QuizConfig.parse(normalizedSession.config);
+  const config = FormConfig.parse(normalizedSession.config);
   const seedSteps =
     config.seedSteps && config.seedSteps.length > 0
       ? config.seedSteps
@@ -95,7 +95,7 @@ export function buildPrompt(
 
   return [
     config.systemPrompt,
-    `Quiz: ${config.name}`,
+    `Form: ${config.name}`,
     `Description: ${config.description}`,
     `Goals: ${config.goals.join("; ")}`,
     `Language: ${config.language}`,
@@ -113,7 +113,7 @@ export function buildPrompt(
     "Never ask for information that is already clear from the history.",
     "Do not repeat or closely paraphrase questions that have already been asked or queued.",
     "Prefer the most information-dense follow-up questions first.",
-    "Avoid filler, meta commentary, or restating the quiz goal back to the user.",
+    "Avoid filler, meta commentary, or restating the form goal back to the user.",
     "Prefer concrete, structured follow-up questions over vague prompts.",
     "Known questions to avoid repeating:",
     knownQuestionBlock,

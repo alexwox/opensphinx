@@ -2,7 +2,7 @@ import type { output } from "zod";
 
 import {
   QuestionSpec,
-  QuizConfig,
+  FormConfig,
   SessionState,
   Step
 } from "../schemas";
@@ -53,7 +53,7 @@ export function sanitizeGeneratedStep(
 }
 
 export function buildFallbackQuestion(
-  config: output<typeof QuizConfig>,
+  config: output<typeof FormConfig>,
   historyLength: number
 ) {
   const questionNumber = historyLength + 1;
@@ -67,7 +67,7 @@ export function buildFallbackQuestion(
 }
 
 export function buildFallbackStep(
-  config: output<typeof QuizConfig>,
+  config: output<typeof FormConfig>,
   historyLength: number
 ) {
   const remainingSlots = Math.max(0, config.maxQuestions - historyLength);
@@ -80,7 +80,7 @@ export function buildFallbackStep(
   });
 }
 
-export function getSeedSteps(config: output<typeof QuizConfig>) {
+export function getSeedSteps(config: output<typeof FormConfig>) {
   if (config.seedSteps && config.seedSteps.length > 0) {
     return config.seedSteps.map((step) => Step.parse(step));
   }
@@ -103,7 +103,7 @@ export function getSeedSteps(config: output<typeof QuizConfig>) {
 }
 
 export function getSeedStep(
-  config: output<typeof QuizConfig>,
+  config: output<typeof FormConfig>,
   completedSteps: number
 ) {
   const seedSteps = getSeedSteps(config);
@@ -111,7 +111,7 @@ export function getSeedStep(
 }
 
 export function canComplete(
-  config: output<typeof QuizConfig>,
+  config: output<typeof FormConfig>,
   sessionState: output<typeof SessionState>
 ) {
   const meetsQuestionMinimum = sessionState.history.length >= config.minQuestions;
@@ -122,7 +122,7 @@ export function canComplete(
 }
 
 export function reachedHardLimit(
-  config: output<typeof QuizConfig>,
+  config: output<typeof FormConfig>,
   sessionState: output<typeof SessionState>
 ) {
   const reachedQuestionLimit = sessionState.history.length >= config.maxQuestions;
@@ -134,7 +134,7 @@ export function reachedHardLimit(
 
 export function trimStepToRemainingQuestionBudget(
   step: output<typeof Step>,
-  config: output<typeof QuizConfig>,
+  config: output<typeof FormConfig>,
   sessionState: output<typeof SessionState>
 ) {
   const remainingQuestionSlots = Math.max(

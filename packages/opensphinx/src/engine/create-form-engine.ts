@@ -1,6 +1,6 @@
 import {
   EngineStepResponse,
-  QuizConfig,
+  FormConfig,
   SessionState,
   Step,
 } from "../schemas";
@@ -9,7 +9,7 @@ import type { input, output } from "zod";
 import { scoreSession } from "./scoring";
 import {
   generateStepWithRetry,
-  type QuizModel,
+  type FormModel,
 } from "./model-step";
 import {
   buildFallbackStep,
@@ -20,29 +20,29 @@ import {
   trimStepToRemainingQuestionBudget,
 } from "./step-helpers";
 
-export type QuizConfigInput = input<typeof QuizConfig>;
+export type FormConfigInput = input<typeof FormConfig>;
 export type SessionStateInput = input<typeof SessionState>;
-export type { QuizModel };
+export type { FormModel };
 
-export interface CreateQuizEngineOptions {
-  readonly model?: QuizModel;
-  readonly config: QuizConfigInput;
+export interface CreateFormEngineOptions {
+  readonly model?: FormModel;
+  readonly config: FormConfigInput;
 }
 
-export interface QuizEngine {
-  readonly config: output<typeof QuizConfig>;
+export interface FormEngine {
+  readonly config: output<typeof FormConfig>;
   generateStep(
     sessionState: SessionStateInput,
   ): Promise<output<typeof EngineStepResponse>>;
 }
 
-function normalizeConfig(config: QuizConfigInput) {
-  return QuizConfig.parse(config);
+function normalizeConfig(config: FormConfigInput) {
+  return FormConfig.parse(config);
 }
 
 function normalizeSession(
   sessionState: SessionStateInput,
-  config: output<typeof QuizConfig>,
+  config: output<typeof FormConfig>,
 ) {
   return SessionState.parse({
     ...sessionState,
@@ -59,7 +59,7 @@ function buildCompleteResponse(sessionState: output<typeof SessionState>) {
 
 function buildStepResponse(
   step: output<typeof Step>,
-  config: output<typeof QuizConfig>,
+  config: output<typeof FormConfig>,
   sessionState: output<typeof SessionState>,
 ) {
   return EngineStepResponse.parse({
@@ -70,7 +70,7 @@ function buildStepResponse(
 
 function resolveModelStep(
   nextStep: Awaited<ReturnType<typeof generateStepWithRetry>>,
-  config: output<typeof QuizConfig>,
+  config: output<typeof FormConfig>,
   normalizedSession: output<typeof SessionState>,
 ): output<typeof EngineStepResponse> | null {
   if (nextStep.type === "complete" && canComplete(config, normalizedSession)) {
@@ -115,7 +115,7 @@ function resolveModelStep(
   );
 }
 
-export function createQuizEngine(options: CreateQuizEngineOptions): QuizEngine {
+export function createFormEngine(options: CreateFormEngineOptions): FormEngine {
   const config = normalizeConfig(options.config);
 
   async function runGenerateStep(sessionState: SessionStateInput) {

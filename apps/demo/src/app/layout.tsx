@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     template: "%s | OpenSphinx"
   },
   description:
-    "Open-source AI quiz engine for adaptive, server-driven question flows. Try the demo, read the quickstart, and ship smarter question experiences.",
+    "Open-source AI form engine for adaptive, server-driven question flows. Try the demo, read the quickstart, and ship smarter question experiences.",
   applicationName: "OpenSphinx",
   alternates: {
     canonical: "/"
@@ -46,14 +46,14 @@ export const metadata: Metadata = {
     url: siteConfig.siteUrl,
     title: "OpenSphinx",
     description:
-      "Open-source AI quiz engine for adaptive, server-driven question flows.",
+      "Open-source AI form engine for adaptive, server-driven question flows.",
     siteName: "OpenSphinx"
   },
   twitter: {
     card: "summary_large_image",
     title: "OpenSphinx",
     description:
-      "Open-source AI quiz engine for adaptive, server-driven question flows."
+      "Open-source AI form engine for adaptive, server-driven question flows."
   }
 };
 

@@ -1,7 +1,7 @@
 {
   "name": "opensphinx",
   "version": "0.0.2-alpha",
-  "description": "The open-source AI quiz engine that asks smarter questions.",
+  "description": "An open-source AI form engine for adaptive question flows.",
   "license": "MIT",
   "homepage": "https://github.com/alexwox/opensphinx#readme",
   "bugs": {
@@ -15,7 +15,7 @@
     "ai",
     "adaptive",
     "forms",
-    "quiz",
+    "form",
     "react",
     "survey",
     "vercel-ai-sdk",

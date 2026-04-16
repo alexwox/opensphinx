@@ -11,7 +11,7 @@ import {
   wireToDecision,
 } from "./model-output";
 
-export type QuizModel = Parameters<typeof generateObject>[0]["model"];
+export type FormModel = Parameters<typeof generateObject>[0]["model"];
 
 export type ModelStepWithFallback = Extract<ModelNextStepDecision, { type: "step" }> & {
   readonly fallbackReason?: "generation_failed";
@@ -19,7 +19,7 @@ export type ModelStepWithFallback = Extract<ModelNextStepDecision, { type: "step
 };
 
 export async function generateStepWithModel(
-  model: QuizModel,
+  model: FormModel,
   sessionState: z.infer<typeof SessionState>
 ) {
   const prompt = buildPrompt(sessionState, sessionState.config.batchSize);
@@ -30,7 +30,7 @@ export async function generateStepWithModel(
     schema: wireSchema,
     schemaName: "OpenSphinxNextStep",
     schemaDescription:
-      "Decide whether to return the next quiz step (questions) or mark the quiz complete.",
+      "Decide whether to return the next form step (questions) or mark the form complete.",
     prompt,
     maxRetries: 0
   });
@@ -39,7 +39,7 @@ export async function generateStepWithModel(
 }
 
 export async function generateStepWithRetry(
-  model: QuizModel,
+  model: FormModel,
   sessionState: z.infer<typeof SessionState>
 ): Promise<ModelNextStepDecision | ModelStepWithFallback> {
   let lastError: unknown;

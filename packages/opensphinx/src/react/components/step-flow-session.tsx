@@ -7,18 +7,18 @@ import { ProgressBar } from "./progress-bar";
 import type { QuestionDraftValue } from "./question-renderer";
 import { StepQuestionsForm } from "./step-questions-form";
 import type {
-  SphinxQuizFlowCompletion,
-  SphinxQuizPrefetchRequest,
-  SphinxQuizPrefetchResult,
-  SphinxQuizProgress,
-  SphinxQuizStepSubmission
-} from "./sphinx-quiz-types";
+  SphinxFormFlowCompletion,
+  SphinxFormPrefetchRequest,
+  SphinxFormPrefetchResult,
+  SphinxFormProgress,
+  SphinxFormStepSubmission
+} from "./sphinx-form-types";
 import {
   cloneDrafts,
   getStepHeading,
   getStepKey,
   joinClassNames
-} from "./sphinx-quiz-utils";
+} from "./sphinx-form-utils";
 
 export interface StepFlowSessionProps {
   readonly steps: readonly Step[];
@@ -27,28 +27,28 @@ export interface StepFlowSessionProps {
   readonly onComplete?: (scores: ScoreResult) => void;
   readonly onRequestPrefetch?:
     | ((
-        request: SphinxQuizPrefetchRequest
-      ) => Promise<SphinxQuizPrefetchResult> | SphinxQuizPrefetchResult)
+        request: SphinxFormPrefetchRequest
+      ) => Promise<SphinxFormPrefetchResult> | SphinxFormPrefetchResult)
     | undefined;
-  readonly onStepSubmit?: (submission: SphinxQuizStepSubmission) => void;
-  readonly onStepsComplete?: (completion: SphinxQuizFlowCompletion) => void;
+  readonly onStepSubmit?: (submission: SphinxFormStepSubmission) => void;
+  readonly onStepsComplete?: (completion: SphinxFormFlowCompletion) => void;
   readonly prefetchWhenRemainingSteps: number;
   readonly isLoading: boolean;
-  readonly progress?: SphinxQuizProgress;
+  readonly progress?: SphinxFormProgress;
   readonly className?: string;
 }
 
-function QuizShell({
+function FormShell({
   children,
   className,
   progress
 }: {
   readonly children: ReactNode;
   readonly className?: string;
-  readonly progress?: SphinxQuizProgress;
+  readonly progress?: SphinxFormProgress;
 }) {
   return (
-    <section className={joinClassNames("opensphinx-quiz", className)}>
+    <section className={joinClassNames("opensphinx-form", className)}>
       {progress && <ProgressBar current={progress.current} max={progress.max} />}
       <div className="opensphinx-card">{children}</div>
     </section>
@@ -71,7 +71,7 @@ export function StepFlowSession({
   const inputName = useId();
   const [queuedSteps, setQueuedSteps] = useState<readonly Step[]>(steps);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
-  const [submissions, setSubmissions] = useState<SphinxQuizStepSubmission[]>([]);
+  const [submissions, setSubmissions] = useState<SphinxFormStepSubmission[]>([]);
   const [draftCache, setDraftCache] = useState<Map<number, QuestionDraftValue[]>>(
     () => new Map()
   );
@@ -92,7 +92,7 @@ export function StepFlowSession({
 
   if (!activeStep) {
     return (
-      <QuizShell
+      <FormShell
         className={className}
         progress={progress}
       >
@@ -108,7 +108,7 @@ export function StepFlowSession({
             </h2>
           </div>
         )}
-      </QuizShell>
+      </FormShell>
     );
   }
 
@@ -116,7 +116,7 @@ export function StepFlowSession({
   const submitLabel = "Next";
 
   return (
-    <QuizShell
+    <FormShell
       className={className}
       progress={progress}
     >
@@ -141,7 +141,7 @@ export function StepFlowSession({
           onSubmitStep={({ answers, drafts }) => {
             cacheDrafts(activeStepIndex, drafts);
 
-            const submission: SphinxQuizStepSubmission = {
+            const submission: SphinxFormStepSubmission = {
               step: activeStep,
               answers,
               stepIndex: activeStepIndex,
@@ -245,6 +245,6 @@ export function StepFlowSession({
           submitLabel={submitLabel}
         />
       )}
-    </QuizShell>
+    </FormShell>
   );
 }

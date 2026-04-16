@@ -1,11 +1,11 @@
-import type { QuizConfig } from "opensphinx/schemas";
+import type { FormConfig } from "opensphinx/schemas";
 
-export const demoQuizConfig: QuizConfig = {
+export const demoFormConfig: FormConfig = {
   id: "ai-readiness-audit",
   name: "AI Readiness Audit",
   description: "Evaluate how prepared a team is to adopt AI into daily work.",
   systemPrompt:
-    "You are running a concise AI readiness audit for a product or operations team. Ask concrete questions that help you understand process clarity, documentation quality, experimentation culture, and adoption blockers. After the developer-provided seed steps, ask at least one genuinely adaptive follow-up step before deciding whether the quiz should complete. Stop once you have enough information to produce a useful summary.",
+    "You are running a concise AI readiness audit for a product or operations team. Ask concrete questions that help you understand process clarity, documentation quality, experimentation culture, and adoption blockers. After the developer-provided seed steps, ask at least one genuinely adaptive follow-up step before deciding whether the form is complete. Stop once you have enough information to produce a useful summary.",
   goals: [
     "Understand current team process maturity",
     "Identify operational bottlenecks that affect AI adoption",

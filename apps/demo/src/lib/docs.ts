@@ -28,7 +28,7 @@ export const docsPages: readonly DocPage[] = [
     slug: "react",
     href: "/docs/react",
     title: "React",
-    description: "Render steps with SphinxQuiz and prefetch follow-up steps."
+    description: "Render steps with SphinxForm and prefetch follow-up steps."
   },
   {
     slug: "engine",

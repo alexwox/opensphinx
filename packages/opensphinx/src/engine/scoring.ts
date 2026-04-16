@@ -1,8 +1,8 @@
-import { QuizConfig, ScoreResult, SessionState } from "../schemas";
+import { FormConfig, ScoreResult, SessionState } from "../schemas";
 
 export function scoreSession(sessionState: SessionState) {
   const normalizedSession = SessionState.parse(sessionState);
-  const config = QuizConfig.parse(normalizedSession.config);
+  const config = FormConfig.parse(normalizedSession.config);
 
   return ScoreResult.parse({
     dimensions: config.scoringDimensions.map((dimension) => ({

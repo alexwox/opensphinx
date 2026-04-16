@@ -1,24 +1,24 @@
 import { StepFlowSession } from "./step-flow-session";
 import type {
-  SphinxQuizFlowCompletion,
-  SphinxQuizPrefetchRequest,
-  SphinxQuizPrefetchResult,
-  SphinxQuizProgress,
-  SphinxQuizProps,
-  SphinxQuizStepSubmission
-} from "./sphinx-quiz-types";
-import { getStepQueue, getStepsKey } from "./sphinx-quiz-utils";
+  SphinxFormFlowCompletion,
+  SphinxFormPrefetchRequest,
+  SphinxFormPrefetchResult,
+  SphinxFormProgress,
+  SphinxFormProps,
+  SphinxFormStepSubmission
+} from "./sphinx-form-types";
+import { getStepQueue, getStepsKey } from "./sphinx-form-utils";
 
 export type {
-  SphinxQuizFlowCompletion,
-  SphinxQuizPrefetchRequest,
-  SphinxQuizPrefetchResult,
-  SphinxQuizProgress,
-  SphinxQuizProps,
-  SphinxQuizStepSubmission
+  SphinxFormFlowCompletion,
+  SphinxFormPrefetchRequest,
+  SphinxFormPrefetchResult,
+  SphinxFormProgress,
+  SphinxFormProps,
+  SphinxFormStepSubmission
 };
 
-export function SphinxQuiz(props: SphinxQuizProps) {
+export function SphinxForm(props: SphinxFormProps) {
   const {
     allowBack = false,
     step,

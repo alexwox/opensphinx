@@ -37,12 +37,12 @@ vi.mock("ai", () => ({
   })
 }));
 
-import { createQuizEngine } from "opensphinx/engine";
-import { SphinxQuiz } from "opensphinx/react";
+import { createFormEngine } from "opensphinx/engine";
+import { SphinxForm } from "opensphinx/react";
 import {
   EngineStepResponse,
   QuestionSpec,
-  QuizConfig,
+  FormConfig,
   SessionState,
   Step
 } from "opensphinx/schemas";
@@ -61,35 +61,35 @@ describe("opensphinx public exports", () => {
         description: "How collaborative the user prefers to be."
       }
     ]
-  } satisfies Parameters<typeof QuizConfig.parse>[0];
+  } satisfies Parameters<typeof FormConfig.parse>[0];
 
   beforeEach(() => {
     generateObjectMock.mockReset();
   });
 
   it("resolves the engine subpath", () => {
-    expect(typeof createQuizEngine).toBe("function");
+    expect(typeof createFormEngine).toBe("function");
   });
 
   it("keeps the engine runtime surface minimal", async () => {
     const engineModule = await import("opensphinx/engine");
 
-    expect(Object.keys(engineModule).sort()).toEqual(["createQuizEngine"]);
+    expect(Object.keys(engineModule).sort()).toEqual(["createFormEngine"]);
   });
 
   it("resolves the react subpath", () => {
-    expect(typeof SphinxQuiz).toBe("function");
+    expect(typeof SphinxForm).toBe("function");
   });
 
   it("keeps the react runtime surface minimal", async () => {
     const reactModule = await import("opensphinx/react");
 
-    expect(Object.keys(reactModule).sort()).toEqual(["SphinxQuiz"]);
+    expect(Object.keys(reactModule).sort()).toEqual(["SphinxForm"]);
   });
 
-  it("renders the React quiz surface", () => {
+  it("renders the React form surface", () => {
     const html = renderToStaticMarkup(
-      React.createElement(SphinxQuiz, {
+      React.createElement(SphinxForm, {
         steps: [
           {
             questions: [
@@ -119,9 +119,9 @@ describe("opensphinx public exports", () => {
     expect(html).toContain("Solo");
   });
 
-  it("renders a loading state in the React quiz surface", () => {
+  it("renders a loading state in the React form surface", () => {
     const html = renderToStaticMarkup(
-      React.createElement(SphinxQuiz, {
+      React.createElement(SphinxForm, {
         steps: [
           {
             questions: [
@@ -143,7 +143,7 @@ describe("opensphinx public exports", () => {
     const schemasModule = await import("opensphinx/schemas");
 
     expect(schemasModule.QuestionSpec).toBe(QuestionSpec);
-    expect(schemasModule.QuizConfig).toBe(QuizConfig);
+    expect(schemasModule.FormConfig).toBe(FormConfig);
   });
 
   it("parses shared schema contracts", () => {
@@ -153,7 +153,7 @@ describe("opensphinx public exports", () => {
       options: ["Solo", "Pair", "Team"]
     });
 
-    const config = QuizConfig.parse({
+    const config = FormConfig.parse({
       ...baseConfig,
       seedQuestions: [question]
     });
@@ -188,7 +188,7 @@ describe("opensphinx public exports", () => {
   });
 
   it("normalizes config defaults in the engine", () => {
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       config: baseConfig
     });
 
@@ -219,7 +219,7 @@ describe("opensphinx public exports", () => {
   });
 
   it("serves explicit seed steps through generateStep", async () => {
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       config: {
         ...baseConfig,
         batchSize: 2,
@@ -262,7 +262,7 @@ describe("opensphinx public exports", () => {
   });
 
   it("serves seed questions as a step from generateStep", async () => {
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       config: {
         ...baseConfig,
         minQuestions: 2,
@@ -300,7 +300,7 @@ describe("opensphinx public exports", () => {
   });
 
   it("uses pending steps before generating a new step", async () => {
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       config: {
         ...baseConfig,
         batchSize: 2
@@ -336,7 +336,7 @@ describe("opensphinx public exports", () => {
   });
 
   it("falls back to a generic step before minimum completion", async () => {
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       config: {
         ...baseConfig,
         minQuestions: 3,
@@ -388,7 +388,7 @@ describe("opensphinx public exports", () => {
       }
     });
 
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       model: {} as never,
       config: {
         ...baseConfig,
@@ -442,7 +442,7 @@ describe("opensphinx public exports", () => {
       }
     });
 
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       model: {} as never,
       config: {
         ...baseConfig,
@@ -491,7 +491,7 @@ describe("opensphinx public exports", () => {
       }
     });
 
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       model: {} as never,
       config: {
         ...baseConfig,
@@ -532,7 +532,7 @@ describe("opensphinx public exports", () => {
       }
     });
 
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       model: {} as never,
       config: {
         ...baseConfig,
@@ -561,7 +561,7 @@ describe("opensphinx public exports", () => {
   });
 
   it("respects a hard maxSteps limit even if more questions could be asked", async () => {
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       config: {
         ...baseConfig,
         minQuestions: 1,
@@ -595,7 +595,7 @@ describe("opensphinx public exports", () => {
       .mockRejectedValueOnce(new Error("bad object"))
       .mockRejectedValueOnce(new Error("still bad"));
 
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       model: {} as never,
       config: {
         ...baseConfig,
@@ -634,7 +634,7 @@ describe("opensphinx public exports", () => {
       .mockRejectedValueOnce(new Error("bad object"))
       .mockRejectedValueOnce(new Error("still bad"));
 
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       model: {} as never,
       config: {
         ...baseConfig,
@@ -692,7 +692,7 @@ describe("opensphinx public exports", () => {
   });
 
   it("includes scaffold scores in the complete response", async () => {
-    const engine = createQuizEngine({
+    const engine = createFormEngine({
       config: {
         ...baseConfig,
         minQuestions: 1,

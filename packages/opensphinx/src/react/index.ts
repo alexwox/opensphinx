@@ -1,1 +1,1 @@
-export { SphinxQuiz } from "./components";
+export { SphinxForm } from "./components";

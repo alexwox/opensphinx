@@ -1,1 +1,1 @@
-export { SphinxQuiz } from "./sphinx-quiz";
+export { SphinxForm } from "./sphinx-form";

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { DemoQuizClient } from "../components/demo-quiz-client";
+import { DemoFormClient } from "../components/demo-form-client";
 import { FeatureCard, FeatureGrid } from "../components/docs/feature-grid";
 import { PackageTabs } from "../components/docs/package-tabs";
 import { siteConfig } from "../lib/site-config";
@@ -9,12 +9,12 @@ const installSnippet = `pnpm add opensphinx @ai-sdk/openai
 pnpm add react react-dom`;
 
 const quickstartSnippet = `import { openai } from "@ai-sdk/openai";
-import { createQuizEngine } from "opensphinx/engine";
-import { SphinxQuiz } from "opensphinx/react";
+import { createFormEngine } from "opensphinx/engine";
+import { SphinxForm } from "opensphinx/react";
 
-const engine = createQuizEngine({
+const engine = createFormEngine({
   model: openai("gpt-4o-mini"),
-  config: quizConfig
+  config: formConfig
 });`;
 
 export default function HomePage() {
@@ -23,13 +23,13 @@ export default function HomePage() {
       <section className="hero">
         <div className="hero__grid site-container">
           <div className="hero__content">
-            <span className="eyebrow">Open-source AI quiz engine</span>
+            <span className="eyebrow">Open-source AI form engine</span>
             <h1>AI-driven question flows</h1>
             <p className="hero__lede">
               OpenSphinx gives you typed schemas, a generation engine, and a
-              React renderer for quizzes that adapt step by step.
+              React renderer for forms that adapt step by step.
               <br />
-              Make your quiz-funnel smarter.
+              Make your form flow smarter.
             </p>
             <div className="hero__actions">
               <Link className="button button--primary" href="/demo">
@@ -66,7 +66,7 @@ export default function HomePage() {
                 </div>
                 <Link href="/demo">Open full demo</Link>
               </div>
-              <DemoQuizClient mode="preview" showOpenAiKeyHint={false} />
+              <DemoFormClient mode="preview" showOpenAiKeyHint={false} />
             </div>
           </div>
         </div>
@@ -81,9 +81,9 @@ export default function HomePage() {
           <div className="workflow-grid">
             <article className="workflow-card">
               <span>01</span>
-              <h3>Define the quiz contract</h3>
+              <h3>Define the form contract</h3>
               <p>
-                Write a <code>QuizConfig</code> with goals, limits, scoring
+                Write a <code>FormConfig</code> with goals, limits, scoring
                 dimensions, and seed steps.
               </p>
             </article>
@@ -99,7 +99,7 @@ export default function HomePage() {
               <span>03</span>
               <h3>Render and loop</h3>
               <p>
-                Pass the returned <code>Step</code> into <code>SphinxQuiz</code>
+                Pass the returned <code>Step</code> into <code>SphinxForm</code>
                 , append answers to session state, and repeat until complete.
               </p>
             </article>
@@ -148,7 +148,7 @@ export default function HomePage() {
                 </div>
                 <Link href="/demo">Open full demo</Link>
               </div>
-              <DemoQuizClient mode="preview" showOpenAiKeyHint={false} />
+              <DemoFormClient mode="preview" showOpenAiKeyHint={false} />
             </div>
           </div>
         </div>
@@ -200,7 +200,7 @@ export default function HomePage() {
                   label: "opensphinx/schemas",
                   value: "schemas",
                   content:
-                    "Shared runtime contracts for QuizConfig, SessionState, Step, answers, and scoring metadata.",
+                    "Shared runtime contracts for FormConfig, SessionState, Step, answers, and scoring metadata.",
                 },
               ]}
             />

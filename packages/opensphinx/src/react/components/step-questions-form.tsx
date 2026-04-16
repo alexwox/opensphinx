@@ -11,7 +11,7 @@ import {
   getQuestionKey,
   isAnswerValue,
   normalizeAnswer
-} from "./sphinx-quiz-utils";
+} from "./sphinx-form-utils";
 
 export interface StepQuestionsSubmitPayload {
   readonly answers: AnswerValue[];

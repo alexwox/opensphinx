@@ -8,7 +8,7 @@ export const metadata = {
 The OpenSphinx runtime model is intentionally narrow:
 
 ```text
-SessionState -> generateStep() -> EngineStepResponse -> Step -> SphinxQuiz -> updated SessionState
+SessionState -> generateStep() -> EngineStepResponse -> Step -> SphinxForm -> updated SessionState
 ```
 
 ## Source of truth
@@ -33,7 +33,7 @@ SessionState -> generateStep() -> EngineStepResponse -> Step -> SphinxQuiz -> up
       label: "EngineStepResponse",
       value: "response",
       content:
-        "Either returns the next step or signals that the quiz is complete."
+        "Either returns the next step or signals that the form is complete."
     }
   ]}
 />

@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createQuizEngine } from "opensphinx/engine";
+import { createFormEngine } from "opensphinx/engine";
 import { EngineStepResponse, SessionState } from "opensphinx/schemas";
 
-import { demoQuizConfig } from "../../../lib/quiz-config";
+import { demoFormConfig } from "../../../lib/form-config";
 import { getClientRateLimitKey, takeRateLimit } from "../../../lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-const QuizRequest = z.object({
+const FormRequest = z.object({
   session: SessionState
 });
 
@@ -35,16 +35,16 @@ function buildRateLimitHeaders(rateLimit: {
 }
 
 async function getDemoEngine() {
-  let model: Parameters<typeof createQuizEngine>[0]["model"];
+  let model: Parameters<typeof createFormEngine>[0]["model"];
 
   if (process.env.OPENAI_API_KEY) {
     const { openai } = await import("@ai-sdk/openai");
     model = openai("gpt-4o-mini");
   }
 
-  return createQuizEngine({
+  return createFormEngine({
     model,
-    config: demoQuizConfig
+    config: demoFormConfig
   });
 }
 
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const payload = QuizRequest.parse(await request.json());
+    const payload = FormRequest.parse(await request.json());
     const engine = await getDemoEngine();
     const session = SessionState.parse({
       ...payload.session,
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Unexpected quiz route error.";
+      error instanceof Error ? error.message : "Unexpected form route error.";
 
     return NextResponse.json(
       {

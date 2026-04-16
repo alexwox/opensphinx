@@ -11,7 +11,7 @@ export const ScoringDimension = z.object({
 
 export type ScoringDimension = z.infer<typeof ScoringDimension>;
 
-export const QuizConfig = z.object({
+export const FormConfig = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
@@ -28,4 +28,4 @@ export const QuizConfig = z.object({
   language: z.string().default("en")
 });
 
-export type QuizConfig = z.infer<typeof QuizConfig>;
+export type FormConfig = z.infer<typeof FormConfig>;

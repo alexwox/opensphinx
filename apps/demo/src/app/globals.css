@@ -814,7 +814,7 @@ pre {
   background: rgba(61, 143, 70, 0.12);
 }
 
-:where(.opensphinx-quiz) {
+:where(.opensphinx-form) {
   --opensphinx-surface: #ffffff;
   --opensphinx-surface-alt: #fffaf2;
   --opensphinx-border: rgba(53, 36, 10, 0.12);

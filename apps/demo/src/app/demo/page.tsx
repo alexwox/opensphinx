@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 
-import { DemoQuizClient } from "../../components/demo-quiz-client";
+import { DemoFormClient } from "../../components/demo-form-client";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Demo",
   description:
-    "Run the OpenSphinx demo quiz and inspect the live adaptive question flow."
+    "Run the OpenSphinx demo form and inspect the live adaptive question flow."
 };
 
 export default function DemoPage() {
@@ -27,14 +27,14 @@ export default function DemoPage() {
 
       <div className="demo-page__grid">
         <div className="demo-page__frame">
-          <DemoQuizClient showOpenAiKeyHint={!hasOpenAiKey} />
+          <DemoFormClient showOpenAiKeyHint={!hasOpenAiKey} />
         </div>
 
         <div className="demo-page__side">
           <section className="demo-sidecard docs-card">
             <h2>What this shows</h2>
             <ul>
-              <li>Seed steps from a fixed quiz config</li>
+              <li>Seed steps from a fixed form config</li>
               <li>Adaptive follow-up generated from session history</li>
               <li>Completion when the engine has enough signal</li>
             </ul>

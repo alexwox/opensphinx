@@ -23,9 +23,9 @@ pnpm add react react-dom
 ## Define a config
 
 ```ts
-import type { QuizConfig } from "opensphinx/schemas";
+import type { FormConfig } from "opensphinx/schemas";
 
-export const quizConfig: QuizConfig = {
+export const formConfig: FormConfig = {
   id: "ai-readiness-audit",
   name: "AI Readiness Audit",
   description: "Evaluate how prepared a team is to adopt AI into daily work.",
@@ -65,14 +65,14 @@ export const quizConfig: QuizConfig = {
 
 ```ts
 import { openai } from "@ai-sdk/openai";
-import { createQuizEngine } from "opensphinx/engine";
+import { createFormEngine } from "opensphinx/engine";
 import type { SessionState } from "opensphinx/schemas";
 
-import { quizConfig } from "./quiz-config";
+import { formConfig } from "./form-config";
 
-const engine = createQuizEngine({
+const engine = createFormEngine({
   model: openai("gpt-4o-mini"),
-  config: quizConfig
+  config: formConfig
 });
 
 export async function getNextStep(session: SessionState) {
@@ -86,10 +86,10 @@ export async function getNextStep(session: SessionState) {
 "use client";
 
 import { useState } from "react";
-import { SphinxQuiz } from "opensphinx/react";
+import { SphinxForm } from "opensphinx/react";
 import type { Step } from "opensphinx/schemas";
 
-export function QuizScreen({
+export function FormScreen({
   firstStep,
   loadMore
 }: {
@@ -99,7 +99,7 @@ export function QuizScreen({
   const [steps, setSteps] = useState<readonly Step[]>([firstStep]);
 
   return (
-    <SphinxQuiz
+    <SphinxForm
       steps={steps}
       prefetchWhenRemainingSteps={0}
       onRequestPrefetch={async () => {

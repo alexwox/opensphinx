@@ -33,7 +33,7 @@ export default function OpenGraphImage() {
             alignSelf: "flex-start"
           }}
         >
-          Open-source AI quiz engine
+          Open-source AI form engine
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div

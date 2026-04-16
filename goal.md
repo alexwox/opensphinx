@@ -7,14 +7,14 @@ This document describes the currently supported v1 surface of `opensphinx`.
 OpenSphinx should read like one obvious product:
 
 1. `SessionState` and `Step` are the runtime source of truth.
-2. `createQuizEngine({ model, config }).generateStep(session)` is the only engine generation path.
-3. `SphinxQuiz` is the only React surface.
+2. `createFormEngine({ model, config }).generateStep(session)` is the only engine generation path.
+3. `SphinxForm` is the only React surface.
 4. `README.md` should be enough to understand the package end to end.
 
 ## Current v1 Workflow
 
 ```text
-SessionState -> generateStep() -> EngineStepResponse -> Step -> SphinxQuiz -> updated SessionState
+SessionState -> generateStep() -> EngineStepResponse -> Step -> SphinxForm -> updated SessionState
 ```
 
 What that means in practice:
@@ -29,7 +29,7 @@ What that means in practice:
 
 `opensphinx/schemas`
 
-- `QuizConfig`
+- `FormConfig`
 - `SessionState`
 - `Step`
 - `EngineStepResponse`
@@ -37,11 +37,11 @@ What that means in practice:
 
 `opensphinx/engine`
 
-- `createQuizEngine`
+- `createFormEngine`
 
 `opensphinx/react`
 
-- `SphinxQuiz`
+- `SphinxForm`
 
 Everything else should be treated as internal implementation detail or deferred.
 
@@ -50,7 +50,7 @@ Everything else should be treated as internal implementation detail or deferred.
 ### Shared Contracts
 
 - `QuestionSpec` and `AnswerValue` cover the supported question catalog.
-- `QuizConfig` carries `systemPrompt`, seeds, limits, and batch size.
+- `FormConfig` carries `systemPrompt`, seeds, limits, and batch size.
 - `SessionState` carries `history`, `pendingSteps`, `completedSteps`, `sessionId`, and `config`.
 - `Step` is the unit of generation and rendering.
 
@@ -64,9 +64,9 @@ Everything else should be treated as internal implementation detail or deferred.
 
 ### React
 
-- `SphinxQuiz` accepts `step` or `steps`.
-- `SphinxQuiz` renders all supported question types.
-- `SphinxQuiz` can request more steps through `onRequestPrefetch`.
+- `SphinxForm` accepts `step` or `steps`.
+- `SphinxForm` renders all supported question types.
+- `SphinxForm` can request more steps through `onRequestPrefetch`.
 - The official docs only describe the step-first flow.
 
 ### Demo
