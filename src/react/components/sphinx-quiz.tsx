@@ -171,16 +171,6 @@ function getStepQueue(props: SphinxQuizProps) {
   return [];
 }
 
-function getAutoProgress(
-  steps: readonly Step[],
-  currentStepIndex: number
-): SphinxQuizProgress {
-  return {
-    current: Math.min(currentStepIndex + 1, steps.length),
-    max: steps.length
-  };
-}
-
 function getQuestionKey(question: QuestionSpec) {
   return JSON.stringify(question);
 }
@@ -288,9 +278,6 @@ function StepFlowSession({
   const [isAwaitingReplacementStep, setIsAwaitingReplacementStep] = useState(false);
 
   const activeStep = queuedSteps[activeStepIndex];
-  const resolvedProgress =
-    progress ??
-    (activeStep ? getAutoProgress(queuedSteps, activeStepIndex) : undefined);
   const allQueuedStepsComplete =
     queuedSteps.length > 0 && activeStepIndex >= queuedSteps.length;
 
@@ -298,7 +285,7 @@ function StepFlowSession({
     return (
       <QuizShell
         className={className}
-        progress={resolvedProgress}
+        progress={progress}
       >
         {isLoading ? (
           <LoadingSkeleton />
@@ -322,12 +309,10 @@ function StepFlowSession({
   return (
     <QuizShell
       className={className}
-      progress={resolvedProgress}
+      progress={progress}
     >
       <header className="opensphinx-card__header">
-        <p className="opensphinx-question-type">
-          Step {Math.min(activeStepIndex + 1, queuedSteps.length)} of {queuedSteps.length}
-        </p>
+        <p className="opensphinx-question-type">Step {activeStepIndex + 1}</p>
         <h2 className="opensphinx-question">{getStepHeading(activeStep)}</h2>
       </header>
 

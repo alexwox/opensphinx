@@ -66,8 +66,8 @@ describe("SphinxQuiz step flow", () => {
 
     expect(screen.getByText("How do you prefer to work?")).toBeTruthy();
     expect(screen.getByText("Do you enjoy pair programming?")).toBeTruthy();
-    expect(screen.getByText("Step 1 of 2")).toBeTruthy();
-    expect(screen.getByText("1 / 2")).toBeTruthy();
+    expect(screen.getByText("Step 1")).toBeTruthy();
+    expect(screen.queryByText("1 / 2")).toBeNull();
 
     fireEvent.click(screen.getByLabelText("Solo"));
     fireEvent.click(screen.getByRole("button", { name: "Yes" }));
@@ -83,7 +83,7 @@ describe("SphinxQuiz step flow", () => {
     });
 
     expect(screen.getByText("What makes collaboration effective for you?")).toBeTruthy();
-    expect(screen.getByText("Step 2 of 2")).toBeTruthy();
+    expect(screen.getByText("Step 2")).toBeTruthy();
 
     fireEvent.change(screen.getByRole("textbox"), {
       target: {
@@ -122,7 +122,7 @@ describe("SphinxQuiz step flow", () => {
       />
     );
 
-    expect(screen.getByText("Step 1 of 1")).toBeTruthy();
+    expect(screen.getByText("Step 1")).toBeTruthy();
     expect(screen.getByText("How confident are you in your process?")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Submit step" })).toBeTruthy();
   });
@@ -170,8 +170,8 @@ describe("SphinxQuiz step flow", () => {
     expect(
       screen.getByText("Do you have a structured onboarding process?")
     ).toBeTruthy();
-    expect(screen.getByText("Step 1 of 1")).toBeTruthy();
-    expect(screen.getByText("1 / 1")).toBeTruthy();
+    expect(screen.getByText("Step 1")).toBeTruthy();
+    expect(screen.queryByText("1 / 1")).toBeNull();
 
     deferred.resolve({
       type: "steps",
@@ -193,7 +193,7 @@ describe("SphinxQuiz step flow", () => {
         screen.getByText("What should the next iteration improve?")
       ).toBeTruthy();
     });
-    expect(screen.getByText("Step 2 of 2")).toBeTruthy();
-    expect(screen.getByText("2 / 2")).toBeTruthy();
+    expect(screen.getByText("Step 2")).toBeTruthy();
+    expect(screen.queryByText("2 / 2")).toBeNull();
   });
 });
