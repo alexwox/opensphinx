@@ -7,7 +7,34 @@ const { generateObjectMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("ai", () => ({
-  generateObject: generateObjectMock
+  generateObject: generateObjectMock,
+  asSchema: () => ({
+    jsonSchema: {
+      type: "object",
+      properties: {
+        questions: {
+          anyOf: [
+            {
+              type: "array",
+              items: {
+                anyOf: [
+                  {
+                    properties: {
+                      type: { const: "yes_no" },
+                      question: { type: "string" }
+                    },
+                    required: ["type", "question"]
+                  }
+                ]
+              }
+            },
+            { type: "null" }
+          ]
+        }
+      },
+      required: ["type", "questions"]
+    }
+  })
 }));
 
 import { createQuizEngine } from "opensphinx/engine";
@@ -385,20 +412,18 @@ describe("opensphinx public exports", () => {
     generateObjectMock.mockResolvedValueOnce({
       object: {
         type: "step",
-        step: {
-          questions: [
-            {
-              type: "rating",
-              question: "How confident are you in your onboarding process?",
-              max: 5
-            },
-            {
-              type: "free_text",
-              question: "What part of onboarding feels weakest?",
-              maxLength: 500
-            }
-          ]
-        }
+        questions: [
+          {
+            type: "rating",
+            question: "How confident are you in your onboarding process?",
+            max: 5
+          },
+          {
+            type: "free_text",
+            question: "What part of onboarding feels weakest?",
+            maxLength: 500
+          }
+        ]
       }
     });
 
@@ -441,19 +466,17 @@ describe("opensphinx public exports", () => {
     generateObjectMock.mockResolvedValueOnce({
       object: {
         type: "step",
-        step: {
-          questions: [
-            {
-              type: "yes_no",
-              question: "Do you have a documented onboarding flow?"
-            },
-            {
-              type: "free_text",
-              question: "What part of onboarding feels weakest?",
-              maxLength: 500
-            }
-          ]
-        }
+        questions: [
+          {
+            type: "yes_no",
+            question: "Do you have a documented onboarding flow?"
+          },
+          {
+            type: "free_text",
+            question: "What part of onboarding feels weakest?",
+            maxLength: 500
+          }
+        ]
       }
     });
 
@@ -497,14 +520,12 @@ describe("opensphinx public exports", () => {
     generateObjectMock.mockResolvedValueOnce({
       object: {
         type: "step",
-        step: {
-          questions: [
-            {
-              type: "yes_no",
-              question: "Do you have a documented onboarding flow?"
-            }
-          ]
-        }
+        questions: [
+          {
+            type: "yes_no",
+            question: "Do you have a documented onboarding flow?"
+          }
+        ]
       }
     });
 
@@ -544,7 +565,8 @@ describe("opensphinx public exports", () => {
   it("allows the AI model to complete once minimum questions are met", async () => {
     generateObjectMock.mockResolvedValueOnce({
       object: {
-        type: "complete"
+        type: "complete",
+        questions: null
       }
     });
 

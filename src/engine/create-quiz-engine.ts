@@ -9,7 +9,11 @@ import type { input, output } from "zod";
 
 import { generateScoreReport } from "./report";
 import { scoreSession } from "./scoring";
-import { generateStepWithRetry, type QuizModel } from "./model-step";
+import {
+  generateStepWithRetry,
+  type ModelGenerationDiagnostic,
+  type QuizModel,
+} from "./model-step";
 import {
   buildFallbackStep,
   canComplete,
@@ -30,8 +34,10 @@ export interface EngineLogEvent {
     | "hard-limit-complete"
     | "seed-step-used"
     | "model-generation-started"
+    | "model-schema-prepared"
     | "model-generation-succeeded"
     | "model-generation-attempt-failed"
+    | "model-generation-wire-output"
     | "model-generation-fallback"
     | "model-complete-accepted"
     | "model-complete-ignored"
@@ -48,6 +54,7 @@ export interface EngineLogEvent {
   readonly questionCount?: number;
   readonly duplicateCount?: number;
   readonly error?: string;
+  readonly details?: readonly string[];
 }
 
 export type EngineLogger = (event: EngineLogEvent) => void;
@@ -231,6 +238,34 @@ function handleModelStepBranch(
   });
 }
 
+function logModelDiagnostic(
+  diagnostic: ModelGenerationDiagnostic,
+  sessionState: output<typeof SessionState>,
+  log: EngineLogger,
+) {
+  const type =
+    diagnostic.type === "schema-prepared"
+      ? "model-schema-prepared"
+      : diagnostic.type === "wire-output"
+        ? "model-generation-wire-output"
+        : "model-generation-attempt-failed";
+
+  log({
+    type,
+    message: diagnostic.message,
+    sessionId: sessionState.sessionId,
+    historyCount: sessionState.history.length,
+    completedSteps: sessionState.completedSteps,
+    error:
+      diagnostic.error instanceof Error
+        ? diagnostic.error.message
+        : diagnostic.error
+          ? String(diagnostic.error)
+          : undefined,
+    details: diagnostic.details,
+  });
+}
+
 export function createQuizEngine(options: CreateQuizEngineOptions): QuizEngine {
   const config = normalizeConfig(options.config);
   const log: EngineLogger = (event) => {
@@ -301,6 +336,7 @@ export function createQuizEngine(options: CreateQuizEngineOptions): QuizEngine {
       const nextStep = await generateStepWithRetry(
         options.model,
         normalizedSession,
+        (diagnostic) => logModelDiagnostic(diagnostic, normalizedSession, log),
       );
 
       const modelResult = handleModelStepBranch(
