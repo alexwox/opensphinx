@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useId, useMemo, useState } from "react";
+import { type ReactNode, useId, useMemo, useState } from "react";
 
 import type {
   AnswerValue,
@@ -18,19 +18,6 @@ export interface SphinxQuizProgress {
   readonly current: number;
   readonly max: number;
 }
-
-export interface SphinxQuizThemeConfig {
-  readonly surface?: string;
-  readonly surfaceAlt?: string;
-  readonly border?: string;
-  readonly accent?: string;
-  readonly accentForeground?: string;
-  readonly text?: string;
-  readonly mutedText?: string;
-  readonly radius?: string | number;
-}
-
-export type SphinxQuizTheme = "default" | SphinxQuizThemeConfig;
 
 export interface SphinxQuizStepSubmission {
   readonly step: Step;
@@ -65,7 +52,6 @@ interface SphinxQuizBaseProps {
   readonly onComplete?: (scores: ScoreResult) => void;
   readonly isLoading?: boolean;
   readonly progress?: SphinxQuizProgress;
-  readonly theme?: SphinxQuizTheme;
   readonly className?: string;
 }
 
@@ -214,44 +200,17 @@ function getStepsKey(steps: readonly Step[]) {
   return JSON.stringify(steps);
 }
 
-function buildThemeStyles(theme?: SphinxQuizTheme): CSSProperties | undefined {
-  if (!theme || theme === "default") {
-    return undefined;
-  }
-
-  return {
-    "--opensphinx-surface": theme.surface,
-    "--opensphinx-surface-alt": theme.surfaceAlt,
-    "--opensphinx-border": theme.border,
-    "--opensphinx-accent": theme.accent,
-    "--opensphinx-accent-foreground": theme.accentForeground,
-    "--opensphinx-text": theme.text,
-    "--opensphinx-muted-text": theme.mutedText,
-    "--opensphinx-radius":
-      typeof theme.radius === "number" ? `${theme.radius}px` : theme.radius
-  } as CSSProperties;
-}
-
 function QuizShell({
   children,
   className,
-  progress,
-  theme
+  progress
 }: {
   readonly children: ReactNode;
   readonly className?: string;
   readonly progress?: SphinxQuizProgress;
-  readonly theme?: SphinxQuizTheme;
 }) {
-  const themeName = typeof theme === "string" ? theme : "custom";
-  const themeStyles = buildThemeStyles(theme);
-
   return (
-    <section
-      className={joinClassNames("opensphinx-quiz", className)}
-      data-theme={themeName}
-      style={themeStyles}
-    >
+    <section className={joinClassNames("opensphinx-quiz", className)}>
       {progress && <ProgressBar current={progress.current} max={progress.max} />}
       <div className="opensphinx-card">{children}</div>
     </section>
@@ -267,7 +226,6 @@ function StepFlowQuiz({
   prefetchWhenRemainingSteps = 1,
   isLoading = false,
   progress,
-  theme = "default",
   className,
   ...rest
 }: SphinxQuizProps) {
@@ -286,7 +244,6 @@ function StepFlowQuiz({
       prefetchWhenRemainingSteps={prefetchWhenRemainingSteps}
       progress={progress}
       steps={steps}
-      theme={theme}
     />
   );
 }
@@ -301,7 +258,6 @@ function StepFlowSession({
   prefetchWhenRemainingSteps,
   isLoading,
   progress,
-  theme,
   className
 }: {
   readonly steps: readonly Step[];
@@ -317,7 +273,6 @@ function StepFlowSession({
   readonly prefetchWhenRemainingSteps: number;
   readonly isLoading: boolean;
   readonly progress?: SphinxQuizProgress;
-  readonly theme: SphinxQuizTheme;
   readonly className?: string;
 }) {
   const inputName = useId();
@@ -344,7 +299,6 @@ function StepFlowSession({
       <QuizShell
         className={className}
         progress={resolvedProgress}
-        theme={theme}
       >
         {isLoading ? (
           <LoadingSkeleton />
@@ -374,7 +328,6 @@ function StepFlowSession({
     <QuizShell
       className={className}
       progress={resolvedProgress}
-      theme={theme}
     >
       <header className="opensphinx-card__header">
         <p className="opensphinx-question-type">
