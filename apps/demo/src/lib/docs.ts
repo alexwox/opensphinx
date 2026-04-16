@@ -46,7 +46,7 @@ export const docsPages: readonly DocPage[] = [
     slug: "examples",
     href: "/docs/examples",
     title: "Examples",
-    description: "Minimal patterns and the AI readiness audit demo."
+    description: "Minimal patterns and the product discovery demo."
   },
   {
     slug: "deployment",

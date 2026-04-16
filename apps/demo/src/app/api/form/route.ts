@@ -22,6 +22,8 @@ const DEMO_RATE_LIMIT_WINDOW_MS = Number.parseInt(
   10
 );
 
+export type StepOrigin = "seed" | "model" | "fallback" | "complete";
+
 function buildRateLimitHeaders(rateLimit: {
   readonly limit: number;
   readonly remaining: number;
@@ -46,6 +48,23 @@ async function getDemoEngine() {
     model,
     config: demoFormConfig
   });
+}
+
+function inferStepOrigin(
+  session: z.infer<typeof SessionState>,
+  hasModel: boolean
+): StepOrigin {
+  const seedStepCount = demoFormConfig.seedSteps?.length ?? 0;
+
+  if (session.completedSteps < seedStepCount) {
+    return "seed";
+  }
+
+  if (hasModel) {
+    return "model";
+  }
+
+  return "fallback";
 }
 
 export async function POST(request: Request) {
@@ -74,16 +93,27 @@ export async function POST(request: Request) {
   try {
     const payload = FormRequest.parse(await request.json());
     const engine = await getDemoEngine();
+    const hasModel = Boolean(process.env.OPENAI_API_KEY);
     const session = SessionState.parse({
       ...payload.session,
       config: engine.config
     });
 
     const next = await engine.generateStep(session);
+    const parsed = EngineStepResponse.parse(next);
+
+    const origin: StepOrigin =
+      parsed.type === "complete" ? "complete" : inferStepOrigin(session, hasModel);
 
     return NextResponse.json(
       {
-        next: EngineStepResponse.parse(next)
+        next: parsed,
+        meta: {
+          origin,
+          completedSteps: session.completedSteps,
+          historyLength: session.history.length,
+          hasModel
+        }
       },
       {
         headers: buildRateLimitHeaders(rateLimit)

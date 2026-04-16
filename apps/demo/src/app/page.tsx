@@ -62,9 +62,9 @@ export default function HomePage() {
               <div className="hero__demo-header">
                 <div>
                   <p className="hero__demo-label">Live preview</p>
-                  <h2>AI Readiness Audit</h2>
+                  <h2>Runtime loop in action</h2>
                 </div>
-                <Link href="/demo">Open full demo</Link>
+                <Link href="/demo">Open full walkthrough</Link>
               </div>
               <DemoFormClient mode="preview" showOpenAiKeyHint={false} />
             </div>
@@ -111,23 +111,23 @@ export default function HomePage() {
         <div className="site-container example-demo">
           <div className="example-demo__content">
             <div className="section-heading">
-              <span className="eyebrow">Example demo</span>
-              <h2>The reference app is embedded on the landing page too.</h2>
+              <span className="eyebrow">See it live</span>
+              <h2>Watch the runtime loop as you answer.</h2>
             </div>
             <p className="example-demo__lede">
-              This is the same AI readiness audit example that powers the
-              dedicated demo route. It shows seeded opening steps, adaptive
-              follow-up, and the server-driven step loop in a package-shaped
-              Next.js app.
+              This is the same reference form that powers the dedicated demo
+              route. Each step you see was returned by{" "}
+              <code>generateStep(session)</code> on the server, rendered by{" "}
+              <code>SphinxForm</code>, and fed back into session state.
             </p>
             <div className="example-demo__notes">
               <p>
-                Use it as the quickest way to understand the product surface and
-                the runtime feel before reading the docs.
+                Open the full walkthrough to see an inspector panel that labels
+                each step as seed, model-generated, or fallback in real time.
               </p>
               <div className="example-demo__actions">
                 <Link className="button button--primary" href="/demo">
-                  Open full demo route
+                  Open full walkthrough
                 </Link>
                 <Link
                   className="button button--secondary"
@@ -144,9 +144,9 @@ export default function HomePage() {
               <div className="hero__demo-header">
                 <div>
                   <p className="hero__demo-label">Embedded example</p>
-                  <h2>AI Readiness Audit</h2>
+                  <h2>Product Discovery</h2>
                 </div>
-                <Link href="/demo">Open full demo</Link>
+                <Link href="/demo">Open full walkthrough</Link>
               </div>
               <DemoFormClient mode="preview" showOpenAiKeyHint={false} />
             </div>
@@ -218,8 +218,8 @@ export default function HomePage() {
           </div>
           <FeatureGrid>
             <FeatureCard
-              title="Adaptive audits"
-              description="Readiness checks, discovery interviews, qualification flows, and internal diagnostics."
+              title="Adaptive intakes"
+              description="Discovery forms, qualification flows, onboarding questionnaires, and internal diagnostics."
             />
             <FeatureCard
               title="Typed React delivery"

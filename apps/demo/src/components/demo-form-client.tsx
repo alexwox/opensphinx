@@ -18,8 +18,25 @@ type PrefetchHandler = NonNullable<FormProps["onRequestPrefetch"]>;
 type PrefetchRequest = Parameters<PrefetchHandler>[0];
 type PrefetchResult = Awaited<ReturnType<PrefetchHandler>>;
 
+type StepOrigin = "seed" | "model" | "fallback" | "complete";
+
+type StepEvent = {
+  readonly origin: StepOrigin;
+  readonly completedSteps: number;
+  readonly historyLength: number;
+  readonly hasModel: boolean;
+  readonly questionCount: number;
+  readonly timestamp: number;
+};
+
 type DemoApiResponse = {
   next: EngineStepResponse;
+  meta?: {
+    origin: StepOrigin;
+    completedSteps: number;
+    historyLength: number;
+    hasModel: boolean;
+  };
   error?: string;
 };
 
@@ -125,6 +142,94 @@ function CheckIcon() {
   );
 }
 
+const ORIGIN_LABELS: Record<StepOrigin, string> = {
+  seed: "Seed step",
+  model: "Model-generated",
+  fallback: "Fallback",
+  complete: "Complete"
+};
+
+const ORIGIN_DESCRIPTIONS: Record<StepOrigin, string> = {
+  seed: "This step was defined in FormConfig.seedSteps \u2014 deterministic and repeatable.",
+  model: "The AI model generated this step based on the answers so far.",
+  fallback: "No model configured. The engine produced a safe placeholder step.",
+  complete: "The engine decided it has enough signal and returned complete."
+};
+
+function StepInspector({
+  events
+}: {
+  readonly events: readonly StepEvent[];
+}) {
+  if (events.length === 0) {
+    return (
+      <div className="demo-inspector">
+        <div className="demo-inspector__header">
+          <h3>Inspector</h3>
+        </div>
+        <p className="demo-inspector__empty">
+          Press <strong>Start demo</strong> to see the engine loop in action.
+          Each step will appear here with its origin and session snapshot.
+        </p>
+      </div>
+    );
+  }
+
+  const latest = events[events.length - 1];
+
+  return (
+    <div className="demo-inspector">
+      <div className="demo-inspector__header">
+        <h3>What just happened</h3>
+        <span className={`demo-inspector__badge demo-inspector__badge--${latest.origin}`}>
+          {ORIGIN_LABELS[latest.origin]}
+        </span>
+      </div>
+
+      <p className="demo-inspector__description">
+        {ORIGIN_DESCRIPTIONS[latest.origin]}
+      </p>
+
+      <div className="demo-inspector__snapshot">
+        <div className="demo-inspector__row">
+          <span>Completed steps</span>
+          <code>{latest.completedSteps}</code>
+        </div>
+        <div className="demo-inspector__row">
+          <span>Questions answered</span>
+          <code>{latest.historyLength}</code>
+        </div>
+        <div className="demo-inspector__row">
+          <span>Questions in this step</span>
+          <code>{latest.questionCount}</code>
+        </div>
+        <div className="demo-inspector__row">
+          <span>Engine mode</span>
+          <code>{latest.hasModel ? "model" : "fallback-only"}</code>
+        </div>
+      </div>
+
+      {events.length > 1 && (
+        <details className="demo-inspector__history">
+          <summary>Step history ({events.length})</summary>
+          <ol className="demo-inspector__timeline">
+            {events.map((event, index) => (
+              <li key={event.timestamp}>
+                <span className={`demo-inspector__dot demo-inspector__dot--${event.origin}`} />
+                <span>
+                  Step {index + 1}: {ORIGIN_LABELS[event.origin]}
+                  {event.origin !== "complete" &&
+                    ` \u00B7 ${event.questionCount} question${event.questionCount === 1 ? "" : "s"}`}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
+    </div>
+  );
+}
+
 export function DemoFormClient({
   showOpenAiKeyHint = true,
   mode = "full"
@@ -138,16 +243,38 @@ export function DemoFormClient({
   const [isReady, setIsReady] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stepEvents, setStepEvents] = useState<StepEvent[]>([]);
+
+  const recordEvent = (payload: DemoApiResponse) => {
+    if (!payload.meta) return;
+
+    const questionCount =
+      payload.next.type === "step" ? payload.next.step.questions.length : 0;
+
+    setStepEvents((prev) => [
+      ...prev,
+      {
+        origin: payload.meta!.origin,
+        completedSteps: payload.meta!.completedSteps,
+        historyLength: payload.meta!.historyLength,
+        hasModel: payload.meta!.hasModel,
+        questionCount,
+        timestamp: Date.now()
+      }
+    ]);
+  };
 
   const startDemo = async () => {
     setIsStarting(true);
     setError(null);
     setIsComplete(false);
+    setStepEvents([]);
 
     const nextSession = buildInitialSession();
 
     try {
       const payload = await requestNextStep(nextSession);
+      recordEvent(payload);
 
       if (payload.next.type === "complete") {
         setSession(nextSession);
@@ -179,6 +306,7 @@ export function DemoFormClient({
     setSession(nextSession);
 
     const payload = await requestNextStep(nextSession);
+    recordEvent(payload);
 
     if (payload.next.type === "complete") {
       setIsComplete(true);
@@ -200,17 +328,18 @@ export function DemoFormClient({
     setIsComplete(false);
     setError(null);
     setIsReady(false);
+    setStepEvents([]);
   };
 
   return (
     <div className={`demo-shell demo-shell--${mode}`}>
       <header className="demo-header">
         <SphinxWordmark />
-        <h1>{mode === "preview" ? "Adaptive form preview" : "AI Readiness Audit"}</h1>
+        <h1>{mode === "preview" ? "Product Discovery" : "Runtime Walkthrough"}</h1>
         <p className="demo-copy">
           {mode === "preview"
-            ? "Start the package demo directly on the page, then open the full route for the reference implementation."
-            : "Adaptive questions, intelligent follow-up, real-time step prefetching, powered by the OpenSphinx engine."}
+            ? "Start the demo to see seed steps, adaptive follow-up, and the engine loop in action."
+            : "Each step below was returned by generateStep(session). The inspector panel explains what the engine did."}
         </p>
         <div className="demo-actions">
           <button disabled={isStarting} onClick={startDemo} type="button">
@@ -243,7 +372,9 @@ export function DemoFormClient({
             </div>
             <h2>Form Complete</h2>
             <p>
-              The engine returned a complete response for this session.
+              The engine returned a <code>complete</code> response for this
+              session after {stepEvents.length} step
+              {stepEvents.length === 1 ? "" : "s"}.
             </p>
           </section>
         )}
@@ -259,6 +390,10 @@ export function DemoFormClient({
           </section>
         )}
       </div>
+
+      {mode === "full" && (
+        <StepInspector events={stepEvents} />
+      )}
     </div>
   );
 }

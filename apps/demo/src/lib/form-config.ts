@@ -1,15 +1,16 @@
 import type { FormConfig } from "opensphinx/schemas";
 
 export const demoFormConfig: FormConfig = {
-  id: "ai-readiness-audit",
-  name: "AI Readiness Audit",
-  description: "Evaluate how prepared a team is to adopt AI into daily work.",
+  id: "product-discovery",
+  name: "Product Discovery",
+  description:
+    "A short intake that explores what a user needs so the right product path can be recommended.",
   systemPrompt:
-    "You are running a concise AI readiness audit for a product or operations team. Ask concrete questions that help you understand process clarity, documentation quality, experimentation culture, and adoption blockers. After the developer-provided seed steps, ask at least one genuinely adaptive follow-up step before deciding whether the form is complete. Stop once you have enough information to produce a useful summary.",
+    "You are running a concise product discovery intake. Ask concrete questions that help you understand the user's team size, current tooling, main workflow pain points, and what outcome they are optimizing for. After the developer-provided seed steps, ask at least one genuinely adaptive follow-up step before deciding whether the form is complete. Stop once you have enough signal to recommend a product path.",
   goals: [
-    "Understand current team process maturity",
-    "Identify operational bottlenecks that affect AI adoption",
-    "Estimate how ready the team is to use AI in day-to-day work"
+    "Understand the user's current workflow and tooling",
+    "Surface the main pain points worth solving",
+    "Identify what a successful outcome looks like for this user"
   ],
   minQuestions: 6,
   maxQuestions: 10,
@@ -18,30 +19,40 @@ export const demoFormConfig: FormConfig = {
   maxSteps: 5,
   scoringDimensions: [
     {
-      id: "process-maturity",
-      name: "Process Maturity",
-      description: "How structured and documented the team's workflows are."
+      id: "workflow-clarity",
+      name: "Workflow Clarity",
+      description:
+        "How well-defined the user's existing processes and tooling are."
     },
     {
-      id: "adoption-readiness",
-      name: "Adoption Readiness",
-      description: "How ready the team is to adopt AI into daily work."
+      id: "urgency",
+      name: "Urgency",
+      description: "How pressing the need for a solution is right now."
     }
   ],
   seedSteps: [
     {
       questions: [
         {
-          type: "yes_no",
-          question: "Do you already use AI tools in any recurring team workflow?"
+          type: "mcq",
+          question: "What best describes your team size?",
+          options: [
+            "Just me",
+            "2\u201310 people",
+            "11\u201350 people",
+            "51\u2013200 people",
+            "200+"
+          ],
+          allowMultiple: false
         },
         {
           type: "rating",
-          question: "How clearly documented are your core team processes?",
+          question:
+            "How satisfied are you with the tools you currently use for this workflow?",
           max: 5,
           labels: {
-            low: "Poorly documented",
-            high: "Very well documented"
+            low: "Very frustrated",
+            high: "Very satisfied"
           }
         }
       ]
@@ -50,21 +61,22 @@ export const demoFormConfig: FormConfig = {
       questions: [
         {
           type: "mcq",
-          question: "Which area feels like the best first AI opportunity?",
+          question: "Which area of your workflow needs the most improvement?",
           options: [
-            "Research",
-            "Documentation",
-            "Support",
-            "Operations",
-            "Content"
+            "Data collection",
+            "Reporting",
+            "Collaboration",
+            "Automation",
+            "Onboarding"
           ],
           allowMultiple: false
         },
         {
           type: "free_text",
-          question: "What is the biggest blocker stopping broader AI adoption today?",
+          question:
+            "Describe what a successful outcome looks like for your team.",
           maxLength: 500,
-          placeholder: "Describe the main blocker."
+          placeholder: "e.g. faster turnaround, fewer manual steps, etc."
         }
       ]
     }
