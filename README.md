@@ -2,6 +2,8 @@
 
 OpenSphinx is the open-source AI quiz engine that asks smarter questions.
 
+> Alpha release: OpenSphinx is usable today, but the API may still evolve and production deployments should keep session state authoritative on the server.
+
 It is one package with three explicit imports:
 
 - `opensphinx/schemas`
@@ -35,12 +37,12 @@ There is intentionally no root `opensphinx` catch-all export.
 Install the package, your AI SDK provider, and React if you use the UI.
 
 ```bash
-pnpm add opensphinx ai zod
-pnpm add @ai-sdk/openai
+pnpm add opensphinx @ai-sdk/openai
 pnpm add react react-dom
 ```
 
 OpenSphinx pins `zod@3.25.x` internally because the current AI SDK structured-output path is not compatible with Zod v4 for this use case.
+You do not need to install `ai` or `zod` separately unless your app uses them directly.
 
 ## The 3 Imports
 
@@ -278,6 +280,8 @@ const quizConfig: QuizConfig = {
 ## Full Session Flow Example
 
 This is the core loop the package is built around.
+
+For a production deployment, keep the authoritative session on the server instead of trusting client-submitted session state directly. The example below keeps state in the client only to show the package loop as simply as possible.
 
 ```tsx
 "use client";

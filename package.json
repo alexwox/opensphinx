@@ -1,8 +1,26 @@
 {
   "name": "opensphinx",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha.0",
   "description": "The open-source AI quiz engine that asks smarter questions.",
   "license": "MIT",
+  "homepage": "https://github.com/alexwox/opensphinx#readme",
+  "bugs": {
+    "url": "https://github.com/alexwox/opensphinx/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexwox/opensphinx.git"
+  },
+  "keywords": [
+    "ai",
+    "adaptive",
+    "forms",
+    "quiz",
+    "react",
+    "survey",
+    "vercel-ai-sdk",
+    "zod"
+  ],
   "type": "module",
   "packageManager": "pnpm@10",
   "engines": {
