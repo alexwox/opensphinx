@@ -355,6 +355,41 @@ pre {
   gap: 26px;
 }
 
+.example-demo {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 26px;
+  align-items: start;
+}
+
+.example-demo__lede {
+  max-width: 56ch;
+  margin: 0 0 18px;
+  color: var(--color-muted);
+  font-size: 1.04rem;
+  line-height: 1.75;
+}
+
+.example-demo__notes {
+  padding: 22px;
+  border: 1px solid var(--color-line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.example-demo__notes p {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.7;
+}
+
+.example-demo__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
 .workflow-grid,
 .feature-grid {
   display: grid;
@@ -1029,8 +1064,61 @@ pre {
   font-size: 13px;
 }
 
+.opensphinx-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.opensphinx-back,
+.opensphinx-submit {
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  font-size: 0.98rem;
+  font-weight: 600;
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    opacity 180ms ease;
+}
+
+.opensphinx-back:hover,
+.opensphinx-submit:hover {
+  transform: translateY(-1px);
+}
+
+.opensphinx-back {
+  background: rgba(255, 255, 255, 0.58);
+  border-color: var(--color-line);
+  color: var(--color-text);
+}
+
+.opensphinx-submit {
+  background: var(--color-accent);
+  color: #fff7f1;
+  box-shadow: 0 10px 24px rgba(186, 75, 47, 0.18);
+}
+
+.opensphinx-submit:hover:not(:disabled) {
+  background: var(--color-accent-strong);
+}
+
+.opensphinx-submit:disabled,
+.opensphinx-back:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 @media (max-width: 1100px) {
   .hero__grid,
+  .example-demo,
   .demo-page__grid,
   .docs-layout,
   .split-layout {
@@ -1064,7 +1152,8 @@ pre {
   .site-nav,
   .hero__actions,
   .docs-demo-cta__actions,
-  .demo-actions {
+  .demo-actions,
+  .opensphinx-actions {
     width: 100%;
   }
 

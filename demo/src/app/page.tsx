@@ -106,6 +106,49 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="section">
+        <div className="site-container example-demo">
+          <div className="example-demo__content">
+            <div className="section-heading">
+              <span className="eyebrow">Example demo</span>
+              <h2>The reference app is embedded on the landing page too.</h2>
+            </div>
+            <p className="example-demo__lede">
+              This is the same AI readiness audit example that powers the dedicated
+              demo route. It shows seeded opening steps, adaptive follow-up, and the
+              server-driven step loop in a package-shaped Next.js app.
+            </p>
+            <div className="example-demo__notes">
+              <p>
+                Use it as the quickest way to understand the product surface and the
+                runtime feel before reading the docs.
+              </p>
+              <div className="example-demo__actions">
+                <Link className="button button--primary" href="/demo">
+                  Open full demo route
+                </Link>
+                <Link className="button button--secondary" href="/docs/examples">
+                  Read examples
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="example-demo__panel">
+            <div className="hero__demo-card">
+              <div className="hero__demo-header">
+                <div>
+                  <p className="hero__demo-label">Embedded example</p>
+                  <h2>AI Readiness Audit</h2>
+                </div>
+                <Link href="/demo">Open full demo</Link>
+              </div>
+              <DemoQuizClient mode="preview" showOpenAiKeyHint={false} />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="section section--split">
         <div className="site-container split-layout">
           <div>
