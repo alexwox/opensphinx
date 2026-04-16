@@ -379,6 +379,21 @@ button {
   transform: scale(0.98);
 }
 
+.opensphinx-binary-option[aria-pressed="true"],
+.opensphinx-rating-option[aria-pressed="true"] {
+  border-color: var(--opensphinx-accent);
+  background: var(--opensphinx-accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 113, 227, 0.2);
+}
+
+.opensphinx-binary-option[aria-pressed="true"]:hover,
+.opensphinx-rating-option[aria-pressed="true"]:hover {
+  background: #0077ed;
+  border-color: #0077ed;
+  transform: translateY(-1px);
+}
+
 .opensphinx-option input[type="radio"],
 .opensphinx-option input[type="checkbox"] {
   width: 18px;

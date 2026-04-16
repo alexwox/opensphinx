@@ -119,6 +119,7 @@ export function QuestionRenderer({
           {Array.from({ length: question.max }, (_, index) => index + 1).map(
             (value) => (
               <button
+                aria-pressed={draft === value}
                 className="opensphinx-rating-option"
                 disabled={disabled}
                 key={value}
@@ -141,6 +142,7 @@ export function QuestionRenderer({
       return (
         <div className="opensphinx-options opensphinx-options--binary">
           <button
+            aria-pressed={draft === true}
             className="opensphinx-binary-option"
             disabled={disabled}
             onClick={() => onChange(true)}
@@ -149,6 +151,7 @@ export function QuestionRenderer({
             Yes
           </button>
           <button
+            aria-pressed={draft === false}
             className="opensphinx-binary-option"
             disabled={disabled}
             onClick={() => onChange(false)}
