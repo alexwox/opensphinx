@@ -700,7 +700,19 @@ pre {
 }
 
 .demo-shell--full {
-  max-width: 720px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 28px;
+  align-items: start;
+}
+
+.demo-shell__form {
+  min-width: 0;
+}
+
+.demo-shell__aside {
+  position: sticky;
+  top: 100px;
 }
 
 .demo-shell--preview .demo-header {
@@ -817,7 +829,6 @@ pre {
 /* ── Inspector panel ── */
 
 .demo-inspector {
-  margin-top: 24px;
   padding: 24px;
   background: var(--color-panel);
   border: 1px solid var(--color-line);
@@ -870,6 +881,18 @@ pre {
   color: rgb(22, 128, 61);
 }
 
+.demo-inspector__callout {
+  margin-bottom: 18px;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  color: rgb(88, 28, 196);
+  font-size: 0.93rem;
+  line-height: 1.6;
+  animation: rise-in 420ms ease both;
+}
+
 .demo-inspector__empty {
   margin: 0;
   color: var(--color-muted);
@@ -877,11 +900,54 @@ pre {
   line-height: 1.65;
 }
 
+.demo-inspector__legend {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.demo-inspector__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.demo-inspector__mode-hint {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(202, 138, 4, 0.06);
+  border: 1px solid rgba(202, 138, 4, 0.14);
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  line-height: 1.55;
+}
+
+.demo-inspector__mode-hint code {
+  padding: 0.14rem 0.4rem;
+  border-radius: 6px;
+  background: rgba(53, 36, 10, 0.08);
+  font-size: 0.82rem;
+}
+
 .demo-inspector__description {
   margin: 0 0 16px;
   color: var(--color-muted);
   font-size: 0.93rem;
   line-height: 1.6;
+}
+
+.demo-inspector__ai-note {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(124, 58, 237, 0.06);
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  line-height: 1.55;
 }
 
 .demo-inspector__snapshot {
@@ -913,23 +979,22 @@ pre {
   background: rgba(53, 36, 10, 0.06);
 }
 
-.demo-inspector__history {
-  margin-top: 16px;
+.demo-inspector__timeline-section {
+  margin-top: 18px;
   border-top: 1px solid var(--color-line);
   padding-top: 14px;
 }
 
-.demo-inspector__history summary {
-  cursor: pointer;
+.demo-inspector__timeline-section h4 {
+  margin: 0 0 10px;
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--color-muted);
-  user-select: none;
 }
 
 .demo-inspector__timeline {
   list-style: none;
-  margin: 12px 0 0;
+  margin: 0;
   padding: 0;
   display: grid;
   gap: 8px;
@@ -1287,13 +1352,15 @@ pre {
   .hero__grid,
   .example-demo,
   .demo-page__grid,
+  .demo-shell--full,
   .docs-layout,
   .split-layout {
     grid-template-columns: 1fr;
   }
 
   .docs-sidebar,
-  .demo-page__side {
+  .demo-page__side,
+  .demo-shell__aside {
     position: static;
   }
 

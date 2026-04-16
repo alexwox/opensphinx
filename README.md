@@ -1,3 +1,7 @@
+<div align="center">
+  <img alt="OpenSphinx" src="docs/opensphinx-logo.png" width="64" height="64" />
+</div>
+
 # OpenSphinx
 
 OpenSphinx is an open-source AI form engine for adaptive question flows.

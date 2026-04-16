@@ -144,74 +144,119 @@ function CheckIcon() {
 
 const ORIGIN_LABELS: Record<StepOrigin, string> = {
   seed: "Seed step",
-  model: "Model-generated",
+  model: "AI-generated",
   fallback: "Fallback",
   complete: "Complete"
 };
 
 const ORIGIN_DESCRIPTIONS: Record<StepOrigin, string> = {
-  seed: "This step was defined in FormConfig.seedSteps \u2014 deterministic and repeatable.",
-  model: "The AI model generated this step based on the answers so far.",
-  fallback: "No model configured. The engine produced a safe placeholder step.",
-  complete: "The engine decided it has enough signal and returned complete."
+  seed: "Defined in FormConfig.seedSteps \u2014 deterministic and repeatable every session.",
+  model: "The AI model read your previous answers and generated this follow-up. These questions did not exist until your answers created them.",
+  fallback: "No model is configured. The engine produced a safe placeholder step so the loop continues.",
+  complete: "The engine has enough signal and returned complete."
 };
 
 function StepInspector({
-  events
+  events,
+  hasModelOnServer
 }: {
   readonly events: readonly StepEvent[];
+  readonly hasModelOnServer: boolean;
 }) {
+  const hasSeenModel = events.some((e) => e.origin === "model");
+  const latest = events.length > 0 ? events[events.length - 1] : null;
+  const justTransitionedToModel =
+    latest?.origin === "model" &&
+    events.filter((e) => e.origin === "model").length === 1;
+
   if (events.length === 0) {
     return (
       <div className="demo-inspector">
         <div className="demo-inspector__header">
-          <h3>Inspector</h3>
+          <h3>What&apos;s happening</h3>
         </div>
         <p className="demo-inspector__empty">
-          Press <strong>Start demo</strong> to see the engine loop in action.
-          Each step will appear here with its origin and session snapshot.
+          Press <strong>Start demo</strong> to begin. The first steps come from
+          a fixed config (seed steps). After that, the AI model takes over and
+          generates questions based on your answers.
         </p>
+
+        <div className="demo-inspector__legend">
+          <div className="demo-inspector__legend-item">
+            <span className="demo-inspector__dot demo-inspector__dot--seed" />
+            <span><strong>Seed</strong> \u2014 predefined in config</span>
+          </div>
+          <div className="demo-inspector__legend-item">
+            <span className="demo-inspector__dot demo-inspector__dot--model" />
+            <span><strong>AI-generated</strong> \u2014 created from your answers</span>
+          </div>
+          <div className="demo-inspector__legend-item">
+            <span className="demo-inspector__dot demo-inspector__dot--fallback" />
+            <span><strong>Fallback</strong> \u2014 no model configured</span>
+          </div>
+        </div>
+
+        {!hasModelOnServer && (
+          <p className="demo-inspector__mode-hint">
+            No <code>OPENAI_API_KEY</code> is set. You will see seed steps
+            followed by fallback questions. Add a key to see adaptive AI
+            follow-up.
+          </p>
+        )}
       </div>
     );
   }
 
-  const latest = events[events.length - 1];
-
   return (
     <div className="demo-inspector">
+      {justTransitionedToModel && (
+        <div className="demo-inspector__callout">
+          <strong>This is the value add.</strong> The questions you see now were
+          not predefined. The AI model read your answers and decided what to ask
+          next. This is what OpenSphinx does that a static form cannot.
+        </div>
+      )}
+
       <div className="demo-inspector__header">
-        <h3>What just happened</h3>
-        <span className={`demo-inspector__badge demo-inspector__badge--${latest.origin}`}>
-          {ORIGIN_LABELS[latest.origin]}
+        <h3>Step {events.length}</h3>
+        <span className={`demo-inspector__badge demo-inspector__badge--${latest!.origin}`}>
+          {ORIGIN_LABELS[latest!.origin]}
         </span>
       </div>
 
       <p className="demo-inspector__description">
-        {ORIGIN_DESCRIPTIONS[latest.origin]}
+        {ORIGIN_DESCRIPTIONS[latest!.origin]}
       </p>
 
       <div className="demo-inspector__snapshot">
         <div className="demo-inspector__row">
           <span>Completed steps</span>
-          <code>{latest.completedSteps}</code>
+          <code>{latest!.completedSteps}</code>
         </div>
         <div className="demo-inspector__row">
           <span>Questions answered</span>
-          <code>{latest.historyLength}</code>
+          <code>{latest!.historyLength}</code>
         </div>
         <div className="demo-inspector__row">
           <span>Questions in this step</span>
-          <code>{latest.questionCount}</code>
+          <code>{latest!.questionCount}</code>
         </div>
         <div className="demo-inspector__row">
           <span>Engine mode</span>
-          <code>{latest.hasModel ? "model" : "fallback-only"}</code>
+          <code>{latest!.hasModel ? "model" : "fallback-only"}</code>
         </div>
       </div>
 
+      {hasSeenModel && !justTransitionedToModel && latest!.origin === "model" && (
+        <p className="demo-inspector__ai-note">
+          Still AI-generated. The model continues adapting based on everything
+          you have answered so far.
+        </p>
+      )}
+
       {events.length > 1 && (
-        <details className="demo-inspector__history">
-          <summary>Step history ({events.length})</summary>
+        <div className="demo-inspector__timeline-section">
+          <h4>Step timeline</h4>
           <ol className="demo-inspector__timeline">
             {events.map((event, index) => (
               <li key={event.timestamp}>
@@ -224,7 +269,7 @@ function StepInspector({
               </li>
             ))}
           </ol>
-        </details>
+        </div>
       )}
     </div>
   );
@@ -232,9 +277,11 @@ function StepInspector({
 
 export function DemoFormClient({
   showOpenAiKeyHint = true,
+  hasModelOnServer = false,
   mode = "full"
 }: {
   readonly showOpenAiKeyHint?: boolean;
+  readonly hasModelOnServer?: boolean;
   readonly mode?: "full" | "preview";
 }) {
   const [session, setSession] = useState<SessionState>(() => buildInitialSession());
@@ -331,15 +378,15 @@ export function DemoFormClient({
     setStepEvents([]);
   };
 
-  return (
-    <div className={`demo-shell demo-shell--${mode}`}>
+  const formContent = (
+    <div className="demo-shell__form">
       <header className="demo-header">
         <SphinxWordmark />
         <h1>{mode === "preview" ? "Product Discovery" : "Runtime Walkthrough"}</h1>
         <p className="demo-copy">
           {mode === "preview"
             ? "Start the demo to see seed steps, adaptive follow-up, and the engine loop in action."
-            : "Each step below was returned by generateStep(session). The inspector panel explains what the engine did."}
+            : "Answer the form and watch the inspector explain each step as it arrives."}
         </p>
         <div className="demo-actions">
           <button disabled={isStarting} onClick={startDemo} type="button">
@@ -390,10 +437,23 @@ export function DemoFormClient({
           </section>
         )}
       </div>
+    </div>
+  );
 
-      {mode === "full" && (
-        <StepInspector events={stepEvents} />
-      )}
+  if (mode === "preview") {
+    return (
+      <div className="demo-shell demo-shell--preview">
+        {formContent}
+      </div>
+    );
+  }
+
+  return (
+    <div className="demo-shell demo-shell--full">
+      {formContent}
+      <div className="demo-shell__aside">
+        <StepInspector events={stepEvents} hasModelOnServer={hasModelOnServer} />
+      </div>
     </div>
   );
 }
