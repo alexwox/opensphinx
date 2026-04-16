@@ -1,6 +1,6 @@
 {
   "name": "opensphinx",
-  "version": "0.0.1-alpha",
+  "version": "0.0.2-alpha",
   "description": "The open-source AI quiz engine that asks smarter questions.",
   "license": "MIT",
   "homepage": "https://github.com/alexwox/opensphinx#readme",
