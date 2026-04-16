@@ -1,0 +1,43 @@
+export const metadata = {
+  title: "Schemas",
+  description: "Important runtime contracts for OpenSphinx."
+};
+
+# Schemas
+
+Use <PackageBadge>opensphinx/schemas</PackageBadge> for the shared types and validation contracts that move between your server and UI.
+
+## Key types
+
+<FeatureGrid>
+  <FeatureCard
+    title="QuizConfig"
+    description="Static developer-authored configuration: system prompt, goals, limits, scoring dimensions, and seed steps."
+  />
+  <FeatureCard
+    title="SessionState"
+    description="Mutable runtime state: config, question history, pending steps, and completed step count."
+  />
+  <FeatureCard
+    title="Step"
+    description="The current renderable step passed to the React surface."
+  />
+</FeatureGrid>
+
+## Why the schemas matter
+
+- They keep server and client in sync.
+- They constrain the package API around explicit contracts.
+- They make it easier to validate runtime payloads before generating more steps.
+
+## Import example
+
+```ts
+import type {
+  AnswerValue,
+  EngineStepResponse,
+  QuizConfig,
+  SessionState,
+  Step
+} from "opensphinx/schemas";
+```

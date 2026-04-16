@@ -1,0 +1,28 @@
+export const metadata = {
+  title: "Deployment",
+  description: "Deploy the OpenSphinx website or demo to Vercel."
+};
+
+# Deployment
+
+The current project layout is a workspace with the public website inside `demo/`.
+
+## Vercel setup
+
+- Import the repo into Vercel
+- Set the project Root Directory to `demo`
+- Add `OPENAI_API_KEY` if you want real model-backed generation in production
+
+## Runtime model
+
+- `/` and `/docs/*` should stay static where possible
+- `/demo` is dynamic
+- `/api/quiz` is dynamic
+
+## Environment variables
+
+`OPENAI_API_KEY` is optional. Without it, the site still demonstrates the engine flow using fallback behavior.
+
+<Callout title="Monorepo note">
+  Keep Vercel pointed at the `demo` app, not the package root, when configuring build and runtime settings.
+</Callout>

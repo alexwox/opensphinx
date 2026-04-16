@@ -1,0 +1,65 @@
+export const metadata = {
+  title: "Concepts",
+  description: "Mental model and runtime loop for OpenSphinx."
+};
+
+# Concepts
+
+The OpenSphinx runtime model is intentionally narrow:
+
+```text
+SessionState -> generateStep() -> EngineStepResponse -> Step -> SphinxQuiz -> updated SessionState
+```
+
+## Source of truth
+
+`SessionState` and `Step` are the runtime source of truth. The engine uses prior answers to decide what comes next, while the React layer only renders the current step and collects submissions.
+
+<PackageTabs
+  tabs={[
+    {
+      label: "SessionState",
+      value: "session",
+      content:
+        "Tracks config, answer history, pending steps, and completed step count."
+    },
+    {
+      label: "Step",
+      value: "step",
+      content:
+        "Represents the current unit of work for the UI. A step contains one or more questions."
+    },
+    {
+      label: "EngineStepResponse",
+      value: "response",
+      content:
+        "Either returns the next step or signals that the quiz is complete."
+    }
+  ]}
+/>
+
+## Seed steps and adaptive follow-up
+
+Start with deterministic opening steps. After that, let the engine ask follow-up questions only when they add new signal.
+
+<FeatureGrid>
+  <FeatureCard
+    title="Seed steps"
+    description="Use them when you want exact opening structure and repeatable first questions."
+  />
+  <FeatureCard
+    title="Adaptive follow-up"
+    description="Let the model branch based on the actual answer history rather than a fixed form tree."
+  />
+  <FeatureCard
+    title="Completion"
+    description="Return complete as soon as the system prompt and hard limits say you have enough signal."
+  />
+</FeatureGrid>
+
+## What OpenSphinx does not do
+
+- It does not own your persistence layer.
+- It does not require a single model provider.
+- It does not expose a wide root package API.
+- It does not replace your product-specific evaluation logic.

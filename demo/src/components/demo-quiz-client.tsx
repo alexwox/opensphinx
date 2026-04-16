@@ -126,9 +126,11 @@ function CheckIcon() {
 }
 
 export function DemoQuizClient({
-  showOpenAiKeyHint = true
+  showOpenAiKeyHint = true,
+  mode = "full"
 }: {
   readonly showOpenAiKeyHint?: boolean;
+  readonly mode?: "full" | "preview";
 }) {
   const [session, setSession] = useState<SessionState>(() => buildInitialSession());
   const [initialSteps, setInitialSteps] = useState<readonly Step[]>([]);
@@ -201,13 +203,14 @@ export function DemoQuizClient({
   };
 
   return (
-    <main className="demo-shell">
+    <div className={`demo-shell demo-shell--${mode}`}>
       <header className="demo-header">
         <SphinxWordmark />
-        <h1>AI Readiness Audit</h1>
+        <h1>{mode === "preview" ? "Adaptive quiz preview" : "AI Readiness Audit"}</h1>
         <p className="demo-copy">
-          Adaptive questions, intelligent follow-up, real-time step
-          prefetching — powered by the OpenSphinx engine.
+          {mode === "preview"
+            ? "Start the package demo directly on the page, then open the full route for the reference implementation."
+            : "Adaptive questions, intelligent follow-up, real-time step prefetching, powered by the OpenSphinx engine."}
         </p>
         <div className="demo-actions">
           <button disabled={isStarting} onClick={startDemo} type="button">
@@ -256,6 +259,6 @@ export function DemoQuizClient({
           </section>
         )}
       </div>
-    </main>
+    </div>
   );
 }

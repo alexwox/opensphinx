@@ -1,0 +1,120 @@
+export const metadata = {
+  title: "Quickstart",
+  description:
+    "Install OpenSphinx, define a config, generate a step on the server, and render it with React."
+};
+
+# Quickstart
+
+OpenSphinx is one package with three explicit imports: <PackageBadge>opensphinx/engine</PackageBadge>, <PackageBadge>opensphinx/react</PackageBadge>, and <PackageBadge>opensphinx/schemas</PackageBadge>.
+
+<Callout title="Alpha release" tone="warning">
+  OpenSphinx is usable today, but the package API may still evolve. Keep session
+  state authoritative on the server in production.
+</Callout>
+
+## Install
+
+```bash
+pnpm add opensphinx @ai-sdk/openai
+pnpm add react react-dom
+```
+
+## Define a config
+
+```ts
+import type { QuizConfig } from "opensphinx/schemas";
+
+export const quizConfig: QuizConfig = {
+  id: "ai-readiness-audit",
+  name: "AI Readiness Audit",
+  description: "Evaluate how prepared a team is to adopt AI into daily work.",
+  systemPrompt:
+    "Ask concise, structured questions and stop once you have enough signal.",
+  goals: [
+    "Understand process maturity",
+    "Identify blockers to AI adoption"
+  ],
+  minQuestions: 6,
+  maxQuestions: 10,
+  batchSize: 2,
+  minSteps: 3,
+  maxSteps: 5,
+  scoringDimensions: [
+    {
+      id: "process-maturity",
+      name: "Process Maturity",
+      description: "How structured and documented the team's workflows are."
+    }
+  ],
+  seedSteps: [
+    {
+      questions: [
+        {
+          type: "yes_no",
+          question: "Do you already use AI tools in any recurring workflow?"
+        }
+      ]
+    }
+  ],
+  language: "en"
+};
+```
+
+## Generate the next step on the server
+
+```ts
+import { openai } from "@ai-sdk/openai";
+import { createQuizEngine } from "opensphinx/engine";
+import type { SessionState } from "opensphinx/schemas";
+
+import { quizConfig } from "./quiz-config";
+
+const engine = createQuizEngine({
+  model: openai("gpt-4o-mini"),
+  config: quizConfig
+});
+
+export async function getNextStep(session: SessionState) {
+  return engine.generateStep(session);
+}
+```
+
+## Render it with React
+
+```tsx
+"use client";
+
+import { useState } from "react";
+import { SphinxQuiz } from "opensphinx/react";
+import type { Step } from "opensphinx/schemas";
+
+export function QuizScreen({
+  firstStep,
+  loadMore
+}: {
+  readonly firstStep: Step;
+  readonly loadMore: () => Promise<Step | null>;
+}) {
+  const [steps, setSteps] = useState<readonly Step[]>([firstStep]);
+
+  return (
+    <SphinxQuiz
+      steps={steps}
+      prefetchWhenRemainingSteps={0}
+      onRequestPrefetch={async () => {
+        const nextStep = await loadMore();
+
+        if (!nextStep) {
+          return { type: "complete" };
+        }
+
+        setSteps((current) => [...current, nextStep]);
+        return { type: "steps", steps: [nextStep] };
+      }}
+    />
+  );
+}
+```
+
+<DemoCta />

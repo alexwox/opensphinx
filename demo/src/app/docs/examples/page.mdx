@@ -1,0 +1,26 @@
+export const metadata = {
+  title: "Examples",
+  description: "Minimal patterns and the OpenSphinx demo example."
+};
+
+# Examples
+
+Two useful starting points:
+
+## 1. Minimal package wiring
+
+Use a short config, one or two seed steps, and a simple server route that returns `engine.generateStep(session)`.
+
+## 2. AI readiness audit
+
+The public demo uses an AI readiness audit config with:
+
+- deterministic opening steps
+- multiple scoring dimensions
+- a real API route at `/api/quiz`
+- optional model injection through `OPENAI_API_KEY`
+
+<DemoCta
+  title="See the reference app"
+  description="Open the demo route and inspect how the package is wired into a small Next.js App Router app."
+/>

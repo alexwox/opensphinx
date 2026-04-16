@@ -1,0 +1,38 @@
+export const metadata = {
+  title: "React",
+  description: "Render generated steps with SphinxQuiz."
+};
+
+# React
+
+Use <PackageBadge>opensphinx/react</PackageBadge> for UI rendering. `SphinxQuiz` is the supported React surface.
+
+## Rendering model
+
+Pass one or more generated steps into `SphinxQuiz`. When the user reaches the end of the current buffer, you can prefetch the next step in the background.
+
+```tsx
+<SphinxQuiz
+  steps={steps}
+  allowBack
+  prefetchWhenRemainingSteps={0}
+  onRequestPrefetch={handlePrefetch}
+/>
+```
+
+## Prefetch flow
+
+The React layer should stay dumb about generation rules. It just sends submissions to the server, gets a new engine response, and appends returned steps to the local step buffer.
+
+<Callout title="Server boundary">
+  Keep generation on the server. The client should not build quiz logic from scratch.
+</Callout>
+
+## What to customize
+
+- Surrounding page layout
+- Typography and colors
+- Start, reset, and completion states
+- Loading and error framing around the quiz
+
+OpenSphinx deliberately leaves those product-layer decisions to your app.

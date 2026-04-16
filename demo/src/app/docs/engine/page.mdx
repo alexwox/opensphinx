@@ -1,0 +1,44 @@
+export const metadata = {
+  title: "Engine",
+  description: "Server-side generation and provider injection."
+};
+
+# Engine
+
+Use <PackageBadge>opensphinx/engine</PackageBadge> on the server.
+
+## Create the engine
+
+```ts
+import { createQuizEngine } from "opensphinx/engine";
+
+const engine = createQuizEngine({
+  model,
+  config: quizConfig
+});
+```
+
+## Provider injection
+
+OpenSphinx does not care whether you use OpenAI, Anthropic, or another AI SDK-compatible provider. The model is injected from the outside.
+
+```ts
+import { openai } from "@ai-sdk/openai";
+
+const engine = createQuizEngine({
+  model: openai("gpt-4o-mini"),
+  config: quizConfig
+});
+```
+
+## Fallback behavior
+
+If you omit `model`, the engine can still serve seed steps and safe fallback behavior for local development and demos.
+
+<Callout title="Recommendation">
+  Treat fallback mode as a development convenience, not your production generation strategy.
+</Callout>
+
+## Request shape
+
+The server route should accept a session payload, validate it, normalize config against the current engine config, and return either the next step or a completion signal.
