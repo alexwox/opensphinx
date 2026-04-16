@@ -45,10 +45,6 @@ async function getDemoEngine() {
       details.push(`error=${event.error}`);
     }
 
-    if (event.details && event.details.length > 0) {
-      details.push(...event.details);
-    }
-
     console.info(`[opensphinx-demo] ${event.message} (${details.join(", ")})`);
   };
 
