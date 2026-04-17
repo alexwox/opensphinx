@@ -29,18 +29,6 @@ export default function HomePage() {
     completedSteps: 0
   };
   const previewStep = demoFormConfig.seedSteps?.[0];
-  const previewEvents = previewStep
-    ? [
-        {
-          origin: "seed" as const,
-          completedSteps: 0,
-          historyLength: 0,
-          hasModel: hasOpenAiKey,
-          questionCount: previewStep.questions.length,
-          timestamp: 0
-        }
-      ]
-    : [];
 
   return (
     <main>
@@ -79,6 +67,32 @@ export default function HomePage() {
               <span>Optional model provider</span>
               <span>Safe fallback demo mode</span>
             </div>
+
+            <div aria-hidden="true" className="hero__pointer">
+              <svg
+                className="hero__pointer-arrow"
+                viewBox="0 0 220 120"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 108 C 40 96, 70 78, 100 60 S 170 22, 210 14"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <path
+                  d="M210 14 L 196 10 M 210 14 L 202 26"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </svg>
+              <span className="hero__pointer-label">try it live</span>
+            </div>
           </div>
 
           <div className="hero__demo">
@@ -92,11 +106,10 @@ export default function HomePage() {
               </div>
               <DemoFormClient
                 hasModelOnServer={hasOpenAiKey}
-                initialEvents={previewEvents}
                 initialSession={previewSession}
                 initialSteps={previewStep ? [previewStep] : []}
                 mode="preview"
-                showInspector
+                showInspector={false}
                 showOpenAiKeyHint={false}
               />
             </div>

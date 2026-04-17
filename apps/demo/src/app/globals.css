@@ -307,6 +307,36 @@ pre {
   font-size: 0.92rem;
 }
 
+.hero__pointer {
+  position: relative;
+  margin-top: 40px;
+  margin-left: 24px;
+  width: 240px;
+  height: 120px;
+  color: var(--color-accent);
+  pointer-events: none;
+}
+
+.hero__pointer-arrow {
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0.9;
+}
+
+.hero__pointer-label {
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-style: italic;
+  color: var(--color-accent);
+  transform: rotate(-4deg);
+  transform-origin: left center;
+  white-space: nowrap;
+}
+
 .hero__demo-card,
 .demo-page__frame,
 .docs-card,
@@ -1391,6 +1421,10 @@ pre {
   .feature-grid,
   .docs-index-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hero__pointer {
+    display: none;
   }
 }
 
