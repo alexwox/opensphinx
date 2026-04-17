@@ -1,9 +1,14 @@
 import Link from "next/link";
 import type { SessionState } from "opensphinx/schemas";
 
-import { DemoFormClient } from "../components/demo-form-client";
 import { FeatureCard, FeatureGrid } from "../components/docs/feature-grid";
 import { PackageTabs } from "../components/docs/package-tabs";
+import {
+  HeroDemoForm,
+  HeroDemoInspector,
+  HeroDemoProvider
+} from "../components/home-hero-demo";
+import type { StepEvent } from "../components/step-inspector";
 import { demoFormConfig } from "../lib/form-config";
 import { siteConfig } from "../lib/site-config";
 
@@ -29,93 +34,112 @@ export default function HomePage() {
     completedSteps: 0
   };
   const previewStep = demoFormConfig.seedSteps?.[0];
+  const seedEvents: readonly StepEvent[] = previewStep
+    ? [
+        {
+          origin: "seed" as const,
+          completedSteps: 0,
+          historyLength: 0,
+          hasModel: hasOpenAiKey,
+          questionCount: previewStep.questions.length,
+          timestamp: 0
+        }
+      ]
+    : [];
 
   return (
     <main>
-      <section className="hero">
-        <div className="hero__grid site-container">
-          <div className="hero__content">
-            <span className="eyebrow">Open-source AI form engine</span>
-            <h1>AI-driven question flows</h1>
-            <p className="hero__lede">
-              OpenSphinx gives you typed schemas, a generation engine, and a
-              React renderer for forms that adapt step by step.
-              <br />
-              Make your form flow smarter.
-            </p>
-            <div className="hero__actions">
-              <Link className="button button--primary" href="/demo">
-                Try demo
-              </Link>
-              <Link
-                className="button button--secondary"
-                href="/docs/quickstart"
-              >
-                Read quickstart
-              </Link>
-              <a
-                className="button button--ghost"
-                href={siteConfig.links.github}
-                rel="noreferrer"
-                target="_blank"
-              >
-                View GitHub
-              </a>
-            </div>
-            <div className="hero__meta">
-              <span>Typed package surfaces</span>
-              <span>Optional model provider</span>
-              <span>Safe fallback demo mode</span>
-            </div>
-
-            <div aria-hidden="true" className="hero__pointer">
-              <svg
-                className="hero__pointer-arrow"
-                viewBox="0 0 220 120"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6 108 C 40 96, 70 78, 100 60 S 170 22, 210 14"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                <path
-                  d="M210 14 L 196 10 M 210 14 L 202 26"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-              </svg>
-              <span className="hero__pointer-label">try it live</span>
-            </div>
-          </div>
-
-          <div className="hero__demo">
-            <div className="hero__demo-card">
-              <div className="hero__demo-header">
-                <div>
-                  <p className="hero__demo-label">Live preview</p>
-                  <h2>Runtime loop in action</h2>
-                </div>
-                <Link href="/demo">Open full walkthrough</Link>
+      <HeroDemoProvider
+        hasModelOnServer={hasOpenAiKey}
+        initialEvents={seedEvents}
+      >
+        <section className="hero">
+          <div className="hero__grid site-container">
+            <div className="hero__content">
+              <span className="eyebrow">Open-source AI form engine</span>
+              <h1>AI-driven question flows</h1>
+              <p className="hero__lede">
+                OpenSphinx gives you typed schemas, a generation engine, and a
+                React renderer for forms that adapt step by step.
+                <br />
+                Make your form flow smarter.
+              </p>
+              <div className="hero__actions">
+                <Link className="button button--primary" href="/demo">
+                  Try demo
+                </Link>
+                <Link
+                  className="button button--secondary"
+                  href="/docs/quickstart"
+                >
+                  Read quickstart
+                </Link>
+                <a
+                  className="button button--ghost"
+                  href={siteConfig.links.github}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  View GitHub
+                </a>
               </div>
-              <DemoFormClient
-                hasModelOnServer={hasOpenAiKey}
-                initialSession={previewSession}
-                initialSteps={previewStep ? [previewStep] : []}
-                mode="preview"
-                showInspector={false}
-                showOpenAiKeyHint={false}
-              />
+              <div className="hero__meta">
+                <span>Typed package surfaces</span>
+                <span>Optional model provider</span>
+                <span>Safe fallback demo mode</span>
+              </div>
+
+              <div className="hero__inspector">
+                <HeroDemoInspector />
+
+                <div aria-hidden="true" className="hero__pointer">
+                  <svg
+                    className="hero__pointer-arrow"
+                    viewBox="0 0 220 120"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6 108 C 40 96, 70 78, 100 60 S 170 22, 210 14"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    <path
+                      d="M210 14 L 196 10 M 210 14 L 202 26"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                    />
+                  </svg>
+                  <span className="hero__pointer-label">try it live</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="hero__demo">
+              <div className="hero__demo-card">
+                <div className="hero__demo-header">
+                  <div>
+                    <p className="hero__demo-label">Live preview</p>
+                    <h2>Runtime loop in action</h2>
+                  </div>
+                  <Link href="/demo">Open full walkthrough</Link>
+                </div>
+                {previewStep && (
+                  <HeroDemoForm
+                    previewSession={previewSession}
+                    previewStep={previewStep}
+                  />
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </HeroDemoProvider>
 
       <section className="section">
         <div className="site-container">

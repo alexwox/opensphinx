@@ -307,33 +307,49 @@ pre {
   font-size: 0.92rem;
 }
 
+.hero__inspector {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 12px;
+  align-items: end;
+  margin-top: 36px;
+  max-width: 560px;
+}
+
+.hero__inspector .demo-inspector {
+  padding: 20px 22px;
+  background: var(--color-bg-elevated);
+  border: 1px solid rgba(53, 36, 10, 0.1);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-soft);
+}
+
 .hero__pointer {
   position: relative;
-  margin-top: 40px;
-  margin-left: 24px;
-  width: 240px;
-  height: 120px;
+  width: 220px;
+  height: 150px;
   color: var(--color-accent);
   pointer-events: none;
 }
 
 .hero__pointer-arrow {
   width: 100%;
-  height: 100%;
+  height: 120px;
   display: block;
   opacity: 0.9;
 }
 
 .hero__pointer-label {
   position: absolute;
-  left: 0;
-  bottom: -4px;
+  left: 8px;
+  top: 120px;
   font-family: var(--font-display);
   font-size: 1.35rem;
   font-style: italic;
   color: var(--color-accent);
   transform: rotate(-4deg);
-  transform-origin: left center;
+  transform-origin: left top;
   white-space: nowrap;
 }
 
@@ -1420,6 +1436,10 @@ pre {
   .workflow-grid,
   .feature-grid,
   .docs-index-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero__inspector {
     grid-template-columns: 1fr;
   }
 
