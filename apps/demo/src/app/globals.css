@@ -862,32 +862,32 @@ pre {
 }
 
 .demo-inspector__badge--seed {
-  background: rgba(37, 99, 235, 0.1);
-  color: rgb(37, 99, 235);
+  background: rgba(186, 75, 47, 0.12);
+  color: var(--color-accent-strong);
 }
 
 .demo-inspector__badge--model {
-  background: rgba(124, 58, 237, 0.1);
-  color: rgb(124, 58, 237);
+  background: rgba(121, 87, 44, 0.12);
+  color: #6a4a1c;
 }
 
 .demo-inspector__badge--fallback {
-  background: rgba(202, 138, 4, 0.1);
-  color: rgb(161, 110, 3);
+  background: rgba(160, 118, 58, 0.12);
+  color: #8a5f24;
 }
 
 .demo-inspector__badge--complete {
-  background: rgba(22, 163, 74, 0.1);
-  color: rgb(22, 128, 61);
+  background: rgba(103, 122, 78, 0.14);
+  color: #52633f;
 }
 
 .demo-inspector__callout {
   margin-bottom: 18px;
   padding: 16px;
   border-radius: 14px;
-  background: rgba(124, 58, 237, 0.08);
-  border: 1px solid rgba(124, 58, 237, 0.18);
-  color: rgb(88, 28, 196);
+  background: rgba(186, 75, 47, 0.08);
+  border: 1px solid rgba(186, 75, 47, 0.18);
+  color: var(--color-accent-strong);
   font-size: 0.93rem;
   line-height: 1.6;
   animation: rise-in 420ms ease both;
@@ -944,7 +944,7 @@ pre {
   margin: 14px 0 0;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(124, 58, 237, 0.06);
+  background: rgba(186, 75, 47, 0.06);
   font-size: 0.88rem;
   color: var(--color-muted);
   line-height: 1.55;
@@ -1016,19 +1016,19 @@ pre {
 }
 
 .demo-inspector__dot--seed {
-  background: rgb(37, 99, 235);
+  background: var(--color-accent);
 }
 
 .demo-inspector__dot--model {
-  background: rgb(124, 58, 237);
+  background: #8a5f24;
 }
 
 .demo-inspector__dot--fallback {
-  background: rgb(202, 138, 4);
+  background: #b38945;
 }
 
 .demo-inspector__dot--complete {
-  background: rgb(22, 163, 74);
+  background: #667a4e;
 }
 
 .demo-sidecard__steps {
@@ -1395,6 +1395,20 @@ pre {
   .docs-article h1,
   .demo-page__intro h1 {
     font-size: clamp(2.5rem, 13vw, 4rem);
+  }
+
+  .hero__actions > *,
+  .docs-demo-cta__actions > *,
+  .demo-actions > *,
+  .opensphinx-actions > * {
+    flex: 1 1 100%;
+  }
+
+  .button,
+  .demo-actions button,
+  .opensphinx-back,
+  .opensphinx-submit {
+    width: 100%;
   }
 
   .section-heading h2 {

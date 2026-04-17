@@ -38,9 +38,9 @@ export const demoFormConfig: FormConfig = {
           question: "What best describes your team size?",
           options: [
             "Just me",
-            "2\u201310 people",
-            "11\u201350 people",
-            "51\u2013200 people",
+            "2-10 people",
+            "11-50 people",
+            "51-200 people",
             "200+"
           ],
           allowMultiple: false

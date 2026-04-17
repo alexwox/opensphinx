@@ -20,8 +20,10 @@ export default function DemoPage() {
         <h1>See what happens at every step</h1>
         <p>
           Start the form and watch the inspector panel explain each step as it
-          arrives. When the seed steps run out, the AI model takes over and
-          generates follow-up questions based on your answers.
+          arrives.{" "}
+          {hasOpenAiKey
+            ? "When the seed steps run out, the AI model generates follow-up questions based on your answers."
+            : "Without an OPENAI_API_KEY, the demo continues with fallback follow-up steps after the seed flow."}
         </p>
       </div>
 

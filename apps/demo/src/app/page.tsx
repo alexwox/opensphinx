@@ -18,6 +18,8 @@ const engine = createFormEngine({
 });`;
 
 export default function HomePage() {
+  const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY?.trim());
+
   return (
     <main>
       <section className="hero">
@@ -66,7 +68,11 @@ export default function HomePage() {
                 </div>
                 <Link href="/demo">Open full walkthrough</Link>
               </div>
-              <DemoFormClient mode="preview" showOpenAiKeyHint={false} />
+              <DemoFormClient
+                hasModelOnServer={hasOpenAiKey}
+                mode="preview"
+                showOpenAiKeyHint={false}
+              />
             </div>
           </div>
         </div>
@@ -148,7 +154,11 @@ export default function HomePage() {
                 </div>
                 <Link href="/demo">Open full walkthrough</Link>
               </div>
-              <DemoFormClient mode="preview" showOpenAiKeyHint={false} />
+              <DemoFormClient
+                hasModelOnServer={hasOpenAiKey}
+                mode="preview"
+                showOpenAiKeyHint={false}
+              />
             </div>
           </div>
         </div>

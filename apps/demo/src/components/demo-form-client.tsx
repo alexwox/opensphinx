@@ -150,7 +150,7 @@ const ORIGIN_LABELS: Record<StepOrigin, string> = {
 };
 
 const ORIGIN_DESCRIPTIONS: Record<StepOrigin, string> = {
-  seed: "Defined in FormConfig.seedSteps \u2014 deterministic and repeatable every session.",
+  seed: "Defined in FormConfig.seedSteps - deterministic and repeatable every session.",
   model: "The AI model read your previous answers and generated this follow-up. These questions did not exist until your answers created them.",
   fallback: "No model is configured. The engine produced a safe placeholder step so the loop continues.",
   complete: "The engine has enough signal and returned complete."
@@ -177,22 +177,24 @@ function StepInspector({
         </div>
         <p className="demo-inspector__empty">
           Press <strong>Start demo</strong> to begin. The first steps come from
-          a fixed config (seed steps). After that, the AI model takes over and
-          generates questions based on your answers.
+          a fixed config (seed steps).{" "}
+          {hasModelOnServer
+            ? "After that, the AI model generates questions based on your answers."
+            : "After that, the engine continues with fallback questions so you can still inspect the runtime loop."}
         </p>
 
         <div className="demo-inspector__legend">
           <div className="demo-inspector__legend-item">
             <span className="demo-inspector__dot demo-inspector__dot--seed" />
-            <span><strong>Seed</strong> \u2014 predefined in config</span>
+            <span><strong>Seed</strong> - predefined in config</span>
           </div>
           <div className="demo-inspector__legend-item">
             <span className="demo-inspector__dot demo-inspector__dot--model" />
-            <span><strong>AI-generated</strong> \u2014 created from your answers</span>
+            <span><strong>AI-generated</strong> - created from your answers</span>
           </div>
           <div className="demo-inspector__legend-item">
             <span className="demo-inspector__dot demo-inspector__dot--fallback" />
-            <span><strong>Fallback</strong> \u2014 no model configured</span>
+            <span><strong>Fallback</strong> - no model configured</span>
           </div>
         </div>
 
@@ -264,7 +266,7 @@ function StepInspector({
                 <span>
                   Step {index + 1}: {ORIGIN_LABELS[event.origin]}
                   {event.origin !== "complete" &&
-                    ` \u00B7 ${event.questionCount} question${event.questionCount === 1 ? "" : "s"}`}
+                    ` - ${event.questionCount} question${event.questionCount === 1 ? "" : "s"}`}
                 </span>
               </li>
             ))}
@@ -385,12 +387,14 @@ export function DemoFormClient({
         <h1>{mode === "preview" ? "Product Discovery" : "Runtime Walkthrough"}</h1>
         <p className="demo-copy">
           {mode === "preview"
-            ? "Start the demo to see seed steps, adaptive follow-up, and the engine loop in action."
+            ? hasModelOnServer
+              ? "Start the demo to see seed steps, adaptive follow-up, and the engine loop in action."
+              : "Start the demo to see seed steps, fallback follow-up, and the engine loop in action."
             : "Answer the form and watch the inspector explain each step as it arrives."}
         </p>
         <div className="demo-actions">
           <button disabled={isStarting} onClick={startDemo} type="button">
-            {isStarting ? "Starting\u2026" : "Start demo"}
+            {isStarting ? "Starting..." : "Start demo"}
           </button>
           <button onClick={resetDemo} type="button">
             Reset
