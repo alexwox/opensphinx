@@ -1,8 +1,10 @@
 import Link from "next/link";
+import type { SessionState } from "opensphinx/schemas";
 
 import { DemoFormClient } from "../components/demo-form-client";
 import { FeatureCard, FeatureGrid } from "../components/docs/feature-grid";
 import { PackageTabs } from "../components/docs/package-tabs";
+import { demoFormConfig } from "../lib/form-config";
 import { siteConfig } from "../lib/site-config";
 
 const installSnippet = `pnpm add opensphinx @ai-sdk/openai
@@ -19,6 +21,26 @@ const engine = createFormEngine({
 
 export default function HomePage() {
   const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY?.trim());
+  const previewSession: SessionState = {
+    sessionId: "landing-page-preview",
+    config: demoFormConfig,
+    history: [],
+    pendingSteps: [],
+    completedSteps: 0
+  };
+  const previewStep = demoFormConfig.seedSteps?.[0];
+  const previewEvents = previewStep
+    ? [
+        {
+          origin: "seed" as const,
+          completedSteps: 0,
+          historyLength: 0,
+          hasModel: hasOpenAiKey,
+          questionCount: previewStep.questions.length,
+          timestamp: 0
+        }
+      ]
+    : [];
 
   return (
     <main>
@@ -70,7 +92,11 @@ export default function HomePage() {
               </div>
               <DemoFormClient
                 hasModelOnServer={hasOpenAiKey}
+                initialEvents={previewEvents}
+                initialSession={previewSession}
+                initialSteps={previewStep ? [previewStep] : []}
                 mode="preview"
+                showInspector
                 showOpenAiKeyHint={false}
               />
             </div>
@@ -109,57 +135,6 @@ export default function HomePage() {
                 , append answers to session state, and repeat until complete.
               </p>
             </article>
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="site-container example-demo">
-          <div className="example-demo__content">
-            <div className="section-heading">
-              <span className="eyebrow">See it live</span>
-              <h2>Watch the runtime loop as you answer.</h2>
-            </div>
-            <p className="example-demo__lede">
-              This is the same reference form that powers the dedicated demo
-              route. Each step you see was returned by{" "}
-              <code>generateStep(session)</code> on the server, rendered by{" "}
-              <code>SphinxForm</code>, and fed back into session state.
-            </p>
-            <div className="example-demo__notes">
-              <p>
-                Open the full walkthrough to see an inspector panel that labels
-                each step as seed, model-generated, or fallback in real time.
-              </p>
-              <div className="example-demo__actions">
-                <Link className="button button--primary" href="/demo">
-                  Open full walkthrough
-                </Link>
-                <Link
-                  className="button button--secondary"
-                  href="/docs/examples"
-                >
-                  Read examples
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <div className="example-demo__panel">
-            <div className="hero__demo-card">
-              <div className="hero__demo-header">
-                <div>
-                  <p className="hero__demo-label">Embedded example</p>
-                  <h2>Product Discovery</h2>
-                </div>
-                <Link href="/demo">Open full walkthrough</Link>
-              </div>
-              <DemoFormClient
-                hasModelOnServer={hasOpenAiKey}
-                mode="preview"
-                showOpenAiKeyHint={false}
-              />
-            </div>
           </div>
         </div>
       </section>

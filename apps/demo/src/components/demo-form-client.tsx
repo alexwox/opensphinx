@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentProps, useState } from "react";
+import { type ComponentProps, useEffect, useRef, useState } from "react";
 
 import { SphinxForm } from "opensphinx/react";
 import type {
@@ -12,6 +12,7 @@ import type {
 } from "opensphinx/schemas";
 
 import { demoFormConfig } from "../lib/form-config";
+import { OpenSphinxMark } from "./site/opensphinx-mark";
 
 type FormProps = ComponentProps<typeof SphinxForm>;
 type PrefetchHandler = NonNullable<FormProps["onRequestPrefetch"]>;
@@ -95,27 +96,7 @@ function buildSessionFromSubmissions(
 function SphinxWordmark() {
   return (
     <div className="demo-wordmark">
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <path
-          d="M12 2L4 7v10l8 5 8-5V7l-8-5z"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M12 12l8-5M12 12v10M12 12L4 7"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <OpenSphinxMark className="demo-wordmark__mark" size={18} />
       OpenSphinx
     </div>
   );
@@ -280,19 +261,36 @@ function StepInspector({
 export function DemoFormClient({
   showOpenAiKeyHint = true,
   hasModelOnServer = false,
-  mode = "full"
+  mode = "full",
+  autoStart = false,
+  showInspector = mode === "full",
+  initialSession,
+  initialSteps,
+  initialEvents
 }: {
   readonly showOpenAiKeyHint?: boolean;
   readonly hasModelOnServer?: boolean;
   readonly mode?: "full" | "preview";
+  readonly autoStart?: boolean;
+  readonly showInspector?: boolean;
+  readonly initialSession?: SessionState;
+  readonly initialSteps?: readonly Step[];
+  readonly initialEvents?: readonly StepEvent[];
 }) {
-  const [session, setSession] = useState<SessionState>(() => buildInitialSession());
-  const [initialSteps, setInitialSteps] = useState<readonly Step[]>([]);
+  const [session, setSession] = useState<SessionState>(
+    () => initialSession ?? buildInitialSession()
+  );
+  const [initialRenderedSteps, setInitialRenderedSteps] = useState<readonly Step[]>(
+    () => initialSteps ?? []
+  );
   const [isStarting, setIsStarting] = useState(false);
-  const [isReady, setIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(() => (initialSteps?.length ?? 0) > 0);
   const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [stepEvents, setStepEvents] = useState<StepEvent[]>([]);
+  const [stepEvents, setStepEvents] = useState<StepEvent[]>(() => [...(initialEvents ?? [])]);
+  const hasAutoStarted = useRef(false);
+  const isAutoStartPreview = mode === "preview" && autoStart;
+  const isSeededPreview = mode === "preview" && (initialSteps?.length ?? 0) > 0;
 
   const recordEvent = (payload: DemoApiResponse) => {
     if (!payload.meta) return;
@@ -327,14 +325,14 @@ export function DemoFormClient({
 
       if (payload.next.type === "complete") {
         setSession(nextSession);
-        setInitialSteps([]);
+        setInitialRenderedSteps([]);
         setIsReady(true);
         setIsComplete(true);
         return;
       }
 
       setSession(nextSession);
-      setInitialSteps([payload.next.step]);
+      setInitialRenderedSteps([payload.next.step]);
       setIsReady(true);
     } catch (requestError) {
       setError(
@@ -373,12 +371,21 @@ export function DemoFormClient({
 
   const resetDemo = () => {
     setSession(buildInitialSession());
-    setInitialSteps([]);
+    setInitialRenderedSteps([]);
     setIsComplete(false);
     setError(null);
     setIsReady(false);
     setStepEvents([]);
   };
+
+  useEffect(() => {
+    if (!autoStart || hasAutoStarted.current) {
+      return;
+    }
+
+    hasAutoStarted.current = true;
+    void startDemo();
+  }, [autoStart]);
 
   const formContent = (
     <div className="demo-shell__form">
@@ -387,19 +394,23 @@ export function DemoFormClient({
         <h1>{mode === "preview" ? "Product Discovery" : "Runtime Walkthrough"}</h1>
         <p className="demo-copy">
           {mode === "preview"
-            ? hasModelOnServer
-              ? "Start the demo to see seed steps, adaptive follow-up, and the engine loop in action."
-              : "Start the demo to see seed steps, fallback follow-up, and the engine loop in action."
+            ? isAutoStartPreview || isSeededPreview
+              ? "This preview starts on the first step so you can inspect the runtime loop immediately."
+              : hasModelOnServer
+                ? "Start the demo to see seed steps, adaptive follow-up, and the engine loop in action."
+                : "Start the demo to see seed steps, fallback follow-up, and the engine loop in action."
             : "Answer the form and watch the inspector explain each step as it arrives."}
         </p>
-        <div className="demo-actions">
-          <button disabled={isStarting} onClick={startDemo} type="button">
-            {isStarting ? "Starting..." : "Start demo"}
-          </button>
-          <button onClick={resetDemo} type="button">
-            Reset
-          </button>
-        </div>
+        {!isAutoStartPreview && !isSeededPreview && (
+          <div className="demo-actions">
+            <button disabled={isStarting} onClick={startDemo} type="button">
+              {isStarting ? "Starting..." : "Start demo"}
+            </button>
+            <button onClick={resetDemo} type="button">
+              Reset
+            </button>
+          </div>
+        )}
         {showOpenAiKeyHint && (
           <p className="demo-hint">
             Add <code>OPENAI_API_KEY</code> to use a real model. Without it the
@@ -430,13 +441,13 @@ export function DemoFormClient({
           </section>
         )}
 
-        {isReady && initialSteps.length > 0 && !isComplete && (
+        {isReady && initialRenderedSteps.length > 0 && !isComplete && (
           <section className="demo-panel">
             <SphinxForm
               allowBack
               onRequestPrefetch={handlePrefetch}
               prefetchWhenRemainingSteps={0}
-              steps={initialSteps}
+              steps={initialRenderedSteps}
             />
           </section>
         )}
@@ -446,8 +457,18 @@ export function DemoFormClient({
 
   if (mode === "preview") {
     return (
-      <div className="demo-shell demo-shell--preview">
+      <div
+        className={`demo-shell demo-shell--preview${showInspector ? " demo-shell--preview-with-inspector" : ""}`}
+      >
         {formContent}
+        {showInspector && (
+          <div className="demo-shell__aside">
+            <StepInspector
+              events={stepEvents}
+              hasModelOnServer={hasModelOnServer}
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -455,9 +476,11 @@ export function DemoFormClient({
   return (
     <div className="demo-shell demo-shell--full">
       {formContent}
-      <div className="demo-shell__aside">
-        <StepInspector events={stepEvents} hasModelOnServer={hasModelOnServer} />
-      </div>
+      {showInspector && (
+        <div className="demo-shell__aside">
+          <StepInspector events={stepEvents} hasModelOnServer={hasModelOnServer} />
+        </div>
+      )}
     </div>
   );
 }
